@@ -11,7 +11,7 @@ router.post("/", authGuard, upload.single("image"), (req, res) => {
 
   res.status(201).json({
     message: "Image uploaded successfully.",
-    imageUrl: `/uploads/${req.file.filename}`,
+    imageUrl: req.file.path,
     filename: req.file.filename,
   });
 });
