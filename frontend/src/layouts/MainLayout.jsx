@@ -56,7 +56,6 @@ const MainLayout = ({ children }) => {
     const aiContext = {
         currentPage: location.pathname,
         currentTabId,
-        currentTabName: currentTab?.name || null,
         currentTabType: currentTab?.type || null,
     };
 
@@ -243,10 +242,7 @@ const MainLayout = ({ children }) => {
                                 {getTabIcon(tab.type)}
 
                                 <Box>
-                                    <Typography fontSize={14} fontWeight={500}>
-                                        {tab.name}
-                                    </Typography>
-                                    <Typography fontSize={11} sx={{ color: "#64748b" }}>
+                                    <Typography fontSize={16} sx={{ color: "#64748b", textTransform: "capitalize" }}>
                                         {tab.type}
                                     </Typography>
                                 </Box>

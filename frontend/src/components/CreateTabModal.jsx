@@ -22,7 +22,6 @@ const tabTypes = [
 
 const CreateTabModal = ({ open, onClose, onCreated }) => {
   const [form, setForm] = useState({
-    name: "",
     type: "agenda",
   });
 
@@ -37,27 +36,81 @@ const CreateTabModal = ({ open, onClose, onCreated }) => {
     }
   };
 
+  const fieldSx = {
+    mb: 2,
+    input: { color: "#f8fafc" },
+    textarea: { color: "#f8fafc" },
+    "& .MuiInputLabel-root": {
+        color: "#94a3b8",
+    },
+    "& .MuiInputLabel-root.Mui-focused": {
+        color: "#60a5fa",
+    },
+    "& .MuiOutlinedInput-root": {
+        background: "#111827",
+        borderRadius: 3,
+        color: "#f8fafc",
+        "& fieldset": {
+        borderColor: "#1f2937",
+        },
+        "&:hover fieldset": {
+        borderColor: "#334155",
+        },
+        "&.Mui-focused fieldset": {
+        borderColor: "#2563eb",
+        },
+    },
+    "& .MuiSelect-icon": {
+        color: "#94a3b8",
+    },
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
-      <DialogTitle>Create New Tab</DialogTitle>
+    <Dialog 
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{
+          paper: {
+              sx: {
+              borderRadius: 4,
+              background: "#0f172a",
+              color: "#f8fafc",
+              border: "1px solid #1f2937",
+              boxShadow: "0 30px 80px rgba(0,0,0,0.65)",
+              },
+          },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          fontWeight: 800,
+          borderBottom: "1px solid #1f2937",
+        }}
+      >
+        Create Space
+      </DialogTitle>
 
-      <DialogContent>
-        <TextField
-          fullWidth
-          label="Tab Name"
-          margin="normal"
-          value={form.name}
-          onChange={(e) =>
-            setForm({ ...form, name: e.target.value })
-          }
-        />
-
+      <DialogContent sx={{ pt: 3 }}>
         <TextField
           fullWidth
           select
           label="Type"
           margin="normal"
           value={form.type}
+          sx={fieldSx}
+          selectprops={{
+            MenuProps: {
+                PaperProps: {
+                sx: {
+                    background: "#0f172a",
+                    color: "#f8fafc",
+                    border: "1px solid #1f2937",
+                },
+                },
+            },
+          }}
           onChange={(e) =>
             setForm({ ...form, type: e.target.value })
           }

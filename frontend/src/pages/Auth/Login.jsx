@@ -101,7 +101,7 @@ const Login = () => {
                 margin="normal"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                InputProps={{
+                inputprops={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <EmailIcon sx={{ color: "#64748b" }} />
@@ -127,7 +127,7 @@ const Login = () => {
                 margin="normal"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                InputProps={{
+                inputprops={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <LockIcon sx={{ color: "#64748b" }} />

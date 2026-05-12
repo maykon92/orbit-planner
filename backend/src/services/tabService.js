@@ -3,7 +3,6 @@ import Item from "../models/Item.js";
 
 export const createUserTab = async ({
   userId,
-  name,
   type,
   icon,
   isPublic = false,
@@ -11,7 +10,6 @@ export const createUserTab = async ({
 }) => {
   return await Tab.create({
     userId,
-    name,
     type,
     icon,
     isPublic,

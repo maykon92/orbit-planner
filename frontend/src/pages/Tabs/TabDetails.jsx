@@ -177,11 +177,12 @@ const TabDetails = () => {
                             <Typography
                                 variant="h3"
                                 sx={{
-                                color: "#f8fafc",
-                                fontWeight: "bold",
+                                    color: "#f8fafc",
+                                    fontWeight: "bold",
+                                    textTransform: "capitalize",
                                 }}
                             >
-                                {tab?.name}
+                                {tab?.type}
                             </Typography>
                         </Box>
                     </Box>
@@ -311,7 +312,8 @@ const TabDetails = () => {
                 open={openModal}
                 onClose={() => setOpenModal(false)}
                 tabId={id}
-                onCreated={handleItemCreated}
+                tabs={tab ? [tab] : []}
+                onCreated={(newItem) => setItems((prev) => [...prev, newItem])}
             />
 
             <Menu

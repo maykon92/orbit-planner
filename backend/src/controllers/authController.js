@@ -43,7 +43,6 @@ export const registerUser = async (req, res) => {
 
     const tabsToCreate = defaultTabs.map((type) => ({
       userId: user._id,
-      name: tabTemplates[type]?.name || type,
       type,
       icon: tabTemplates[type]?.icon || "folder",
       isPublic: false,
@@ -54,7 +53,6 @@ export const registerUser = async (req, res) => {
 
     res.status(201).json({
       _id: user._id,
-      name: user.name,
       email: user.email,
       selectedTabs: user.selectedTabs,
       avatar: user.avatar,

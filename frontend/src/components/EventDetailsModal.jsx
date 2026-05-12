@@ -39,7 +39,7 @@ const EventDetailsModal = ({ open, onClose, event }) => {
         onClose={onClose}
         fullWidth
         maxWidth="sm"
-        PaperProps={{
+        paperprops={{
             sx: {
             borderRadius: 4,
             background: "#0f172a",
@@ -61,7 +61,7 @@ const EventDetailsModal = ({ open, onClose, event }) => {
 
         <DialogContent>
             <Chip
-            label={event.extendedProps?.tabName}
+            label={event.extendedProps?.type || "General"}
             sx={{
                 mb: 3,
                 background: "#1e293b",

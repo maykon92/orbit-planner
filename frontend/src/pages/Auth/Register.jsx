@@ -105,7 +105,7 @@ const Register = () => {
                 onChange={(e) =>
                   setForm({ ...form, name: e.target.value })
                 }
-                InputProps={{
+                inputprops={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <PersonIcon sx={{ color: "#64748b" }} />
@@ -133,7 +133,7 @@ const Register = () => {
                 onChange={(e) =>
                   setForm({ ...form, email: e.target.value })
                 }
-                InputProps={{
+                inputprops={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <EmailIcon sx={{ color: "#64748b" }} />
@@ -161,7 +161,7 @@ const Register = () => {
                 onChange={(e) =>
                   setForm({ ...form, password: e.target.value })
                 }
-                InputProps={{
+                inputprops={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <LockIcon sx={{ color: "#64748b" }} />

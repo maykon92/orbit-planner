@@ -125,9 +125,9 @@ const Dashboard = () => {
                 <Typography
                   variant="h5"
                   fontWeight="bold"
-                  sx={{ color: "#f8fafc", mb: 1.5 }}
+                  sx={{ color: "#f8fafc", mb: 1.5, textTransform: "capitalize" }}
                 >
-                  {tab.name}
+                  {tab.type}
                 </Typography>
 
                 <Typography sx={{ color: "#94a3b8", lineHeight: 1.6 }}>

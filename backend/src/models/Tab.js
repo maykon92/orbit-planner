@@ -9,12 +9,6 @@ const tabSchema = new mongoose.Schema(
       required: true,
     },
 
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
     type: {
       type: String,
       required: true,

@@ -20,8 +20,7 @@ const EditTabModal = ({ open, onClose, tab, onSave }) => {
 
   useEffect(() => {
     if (tab) {
-      setForm({
-        name: tab.name || "",
+      setForm({   
         icon: tab.icon || "",
         isPublic: tab.isPublic || false,
         aiEnabled: tab.aiEnabled ?? true,

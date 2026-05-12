@@ -119,8 +119,8 @@ const AIChatModal = ({ open, onClose, context = {} }) => {
                 </Typography>
 
                 <Typography sx={{ color: "#94a3b8", mt: 1 }}>
-                    {context.currentTabName
-                    ? `Helping you organise your ${context.currentTabName} space.`
+                    {context.currentTabType
+                    ? `Helping you organise your ${context.currentTabType} space.`
                     : "Your intelligent life planner assistant."}
                 </Typography>
 

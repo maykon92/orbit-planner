@@ -24,6 +24,8 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
   const [tabs, setTabs] = useState([]);
   const [items, setItems] = useState([]);
   const [preview, setPreview] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   const [form, setForm] = useState({
     caption: "",
@@ -63,25 +65,38 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
 
     if (!file) return;
 
-    const uploadForm = new FormData();
-    uploadForm.append("image", file);
+    try {
+      setUploading(true);
 
-    const { data } = await api.post("/uploads", uploadForm, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+      const uploadForm = new FormData();
+      uploadForm.append("image", file);
 
-    setForm((prev) => ({
-      ...prev,
-      photo: data.imageUrl,
-    }));
+      const { data } = await api.post("/uploads", uploadForm, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-    setPreview(getImageUrl(data.imageUrl));
+      setForm((prev) => ({
+        ...prev,
+        photo: data.imageUrl,
+      }));
+
+      setPreview(getImageUrl(data.imageUrl));
+    } catch (error) {
+      console.error(error);
+      alert("Error uploading image.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async () => {
+    if (uploading) return;
+
     try {
+      setPublishing(true);
+
       if (!form.caption.trim()) {
         alert("Caption is required.");
         return;
@@ -109,6 +124,8 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
     } catch (error) {
       console.error(error);
       alert("Error creating post.");
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -121,21 +138,45 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
       PaperProps={{
         sx: {
           borderRadius: 4,
-          background: "#0f172a",
+          backgroundColor: "#0f172a",
           color: "#f8fafc",
           border: "1px solid #1f2937",
           boxShadow: "0 30px 80px rgba(0,0,0,0.65)",
+          overflow: "hidden",
         },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-        <Avatar src={user?.avatar ? getImageUrl(user.avatar) : ""}>
+      <Box 
+        sx={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 2,
+          px: 3,
+          py: 2,
+          backgroundColor: "#0f172a",
+          color: "#f8fafc",
+        }}
+      >
+        <Avatar
+          src={user?.avatar ? getImageUrl(user.avatar) : ""}
+          sx={{ width: 48, height: 48 }}
+        >
           {user?.name?.charAt(0)}
         </Avatar>
 
-        <Box>
-          <Typography fontWeight="bold">{user?.name}</Typography>
-          <Typography sx={{ color: "#64748b", fontSize: 13 }}>
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <Typography fontWeight="bold" sx={{ lineHeight: 1.2 }}>
+            {user?.name}
+          </Typography>
+
+          <Typography
+            sx={{
+              color: "#64748b",
+              fontSize: 13,
+              lineHeight: 1.2,
+              mt: 0.3,
+            }}
+          >
             Share a moment, plan or memory
           </Typography>
         </Box>
@@ -245,7 +286,7 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
           <MenuItem value="">None</MenuItem>
           {tabs.map((tab) => (
             <MenuItem key={tab._id} value={tab._id}>
-              {tab.name} ({tab.type})
+              {tab.type}
             </MenuItem>
           ))}
         </TextField>
@@ -300,7 +341,7 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
             },
           }}
         >
-          Upload Image
+          {uploading ? "Uploading..." : "Upload Image"}
           <input hidden type="file" accept="image/*" onChange={handleUpload} />
         </Button>
 
@@ -335,13 +376,14 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
         <Button
           variant="contained"
           onClick={handleSubmit}
+          disabled={uploading || publishing}
           sx={{
             borderRadius: 3,
-            background: "#2563eb",
+            background: uploading || publishing ? "#334155" : "#2563eb",
             fontWeight: 700,
           }}
         >
-          Publish
+          {uploading ? "Uploading image..." : publishing ? "Publishing..." : "Publish"}
         </Button>
       </DialogActions>
     </Dialog>

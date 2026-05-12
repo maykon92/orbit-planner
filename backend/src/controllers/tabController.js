@@ -7,15 +7,14 @@ import {
 
 export const createTab = async (req, res) => {
   try {
-    const { name, type, icon, isPublic, aiEnabled } = req.body;
+    const {type, icon, isPublic, aiEnabled } = req.body;
 
-    if (!name || !type) {
-      return res.status(400).json({ message: "Name and type are required." });
+    if (!type) {
+      return res.status(400).json({ message: "Type is required." });
     }
 
     const tab = await createUserTab({
       userId: req.user._id,
-      name,
       type,
       icon,
       isPublic,
@@ -60,7 +59,6 @@ export const updateTab = async (req, res) => {
       return res.status(404).json({ message: "Tab not found." });
     }
 
-    tab.name = req.body.name ?? tab.name;
     tab.icon = req.body.icon ?? tab.icon;
     tab.isPublic = req.body.isPublic ?? tab.isPublic;
     tab.aiEnabled = req.body.aiEnabled ?? tab.aiEnabled;

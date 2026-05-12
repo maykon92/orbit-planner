@@ -53,7 +53,6 @@ const LifeDashboard = () => {
               borderColor: "transparent",
               extendedProps: {
                 type: item.type,
-                tabName: tab.name,
                 description: item.description,
                 itemData: item.data,
               },
@@ -86,42 +85,6 @@ const LifeDashboard = () => {
           Do life with focus, memory and intention.
         </Typography>
       </Box>
-
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {tabs.slice(0, 4).map((tab) => (
-          <Grid item xs={12} sm={6} md={3} key={tab._id}>
-            <Card
-              sx={{
-                height: 150,
-                borderRadius: 4,
-                background: "linear-gradient(145deg, #111827, #0f172a)",
-                border: "1px solid #1f2937",
-                color: "#fff",
-              }}
-            >
-              <CardContent>
-                <Chip
-                  label={tab.type}
-                  size="small"
-                  sx={{
-                    background: "#1e293b",
-                    color: "#bfdbfe",
-                    mb: 2,
-                  }}
-                />
-
-                <Typography variant="h6" fontWeight="bold">
-                  {tab.name}
-                </Typography>
-
-                <Typography sx={{ color: "#64748b", fontSize: 13 }}>
-                  Open your {tab.type} space
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
@@ -264,8 +227,8 @@ const LifeDashboard = () => {
                   {event.title}
                 </Typography>
 
-                <Typography sx={{ color: "#64748b", fontSize: 13 }}>
-                  {event.extendedProps?.tabName}
+                <Typography sx={{ color: "#64748b", fontSize: 13, textTransform: "capitalize" }}>
+                  {event.extendedProps?.type || "General"}
                 </Typography>
               </Box>
             ))}
@@ -302,7 +265,6 @@ const LifeDashboard = () => {
               borderColor: "transparent",
               extendedProps: {
                 type: newItem.type,
-                tabName: tabs.find((tab) => tab._id === newItem.tabId)?.name || "Item",
                 description: newItem.description,
                 itemData: newItem.data,
               },
