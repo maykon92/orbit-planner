@@ -154,6 +154,7 @@ const MainLayout = ({ children }) => {
                 </ListItemButton>
 
                 {/* DASHBOARD */}
+                
                 <ListItemButton
                     onClick={() => {
                         navigate("/");
@@ -240,7 +241,6 @@ const MainLayout = ({ children }) => {
                                 }}
                                 >
                                 {getTabIcon(tab.type)}
-
                                 <Box>
                                     <Typography fontSize={16} sx={{ color: "#64748b", textTransform: "capitalize" }}>
                                         {tab.type}
@@ -376,9 +376,11 @@ const MainLayout = ({ children }) => {
             <Box
                 component="main"
                 sx={{
-                flexGrow: 1,
-                p: 3,
-                mt: isMobile ? 8 : 0,
+                    flexGrow: 1,
+                    p: 3,
+                    mt: isMobile ? 8 : 0,
+                    minWidth: 0, // IMPORTANTE: permite que o conteúdo encolha
+                    overflowX: "hidden", 
                 }}
             >
                 {children}

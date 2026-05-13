@@ -24,6 +24,8 @@ const CreateItemModal = ({ open, onClose, tabId, tabs = [], onCreated, initialDa
         genre: "",
         priority: "",
         duration: "",
+        startTime: "",
+        endTime: "",
     });
 
     const selectedTab = tabs.find((tab) => tab._id === form.selectedTabId);
@@ -51,6 +53,8 @@ const CreateItemModal = ({ open, onClose, tabId, tabs = [], onCreated, initialDa
                     priority: form.priority,
 
                     duration: form.duration,
+                    startTime: form.startTime,
+                    endTime: form.endTime,
                 },
             });
 
@@ -235,6 +239,36 @@ const CreateItemModal = ({ open, onClose, tabId, tabs = [], onCreated, initialDa
                     value={form.endDate}
                     sx={fieldSx}
                     onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+                />
+
+                <TextField
+                    fullWidth
+                    label="Start Time"
+                    type="time"
+                    margin="normal"
+                    slotProps={{
+                        inputLabel: {
+                        shrink: true,
+                        },
+                    }}
+                    value={form.startTime}
+                    onChange={(e) => setForm({ ...form, startTime: e.target.value })}
+                    sx={fieldSx}
+                />
+
+                <TextField
+                    fullWidth
+                    label="End Time"
+                    type="time"
+                    margin="normal"
+                    slotProps={{
+                        inputLabel: {
+                        shrink: true,
+                        },
+                    }}
+                    value={form.endTime}
+                    onChange={(e) => setForm({ ...form, endTime: e.target.value })}
+                    sx={fieldSx}
                 />
 
                 {selectedType === "travel" && (

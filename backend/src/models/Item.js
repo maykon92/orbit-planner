@@ -46,6 +46,17 @@ const itemSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+
+    startTime: {
+      type: String,
+      default: "",
+    },
+
+    endTime: {
+      type: String,
+      default: "",
+    },
+
   },
   {
     timestamps: true,

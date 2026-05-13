@@ -9,7 +9,7 @@ import {
 
 export const createItem = async (req, res) => {
   try {
-    const { tabId, title, description, status, data, photos } = req.body;
+    const { tabId, title, description, status, data, photos, startTime, endTime } = req.body;
 
     if (!tabId || !title) {
       return res.status(400).json({ message: "Tab ID and title are required." });
@@ -33,6 +33,8 @@ export const createItem = async (req, res) => {
       status,
       data,
       photos,
+      startTime,
+      endTime,
     });
 
     res.status(201).json(item);
@@ -100,6 +102,8 @@ export const updateItem = async (req, res) => {
     item.status = req.body.status ?? item.status;
     item.data = req.body.data ?? item.data;
     item.photos = req.body.photos ?? item.photos;
+    item.startTime = req.body.data?.startTime ?? item.startTime;
+    item.endTime = req.body.data?.endTime ?? item.endTime;
 
     const updatedItem = await item.save();
 
