@@ -236,164 +236,170 @@ const LifeDashboard = () => {
       </Box>
 
         {/* TODAY TIMELINE SECTION - COM SCROLL HORIZONTAL */}
-        <Box sx={{ width: "100%" }}>
+        {/* TODAY TIMELINE SECTION - VERSÃO RESPONSIVA */}
+<Box sx={{ width: "100%", mt: 4 }}>
+  <Box
+    sx={{
+      p: 3,
+      borderRadius: 4,
+      background: "linear-gradient(180deg, rgba(15,23,42,0.96), rgba(17,24,39,0.96))",
+      border: "1px solid #1f2937",
+    }}
+  >
+    <Typography variant="h5" fontWeight="bold" sx={{ color: "#fff" }}>
+      Today Timeline
+    </Typography>
+    <Typography sx={{ color: "#64748b", mt: 1, mb: 4 }}>
+      Your schedule organised by time.
+    </Typography>
+
+    {todayEvents.length === 0 ? (
+      <Typography sx={{ color: "#64748b" }}>
+        No items planned for today.
+      </Typography>
+    ) : (
+      <Box
+        sx={{
+          width: "100%",
+          overflowX: "scroll",
+          overflowY: "hidden",
+          pb: 2,
+          position: "relative",
+          
+          // Scrollbar styling
+          "&::-webkit-scrollbar": {
+            height: "6px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "#1e293b",
+            borderRadius: "99px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "#475569",
+            borderRadius: "99px",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            background: "#64748b",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            gap: 2.5,
+            width: "max-content",
+            minWidth: "100%",
+            position: "relative",
+          }}
+        >
+          {/* Timeline line */}
           <Box
             sx={{
-              p: 3,
-              borderRadius: 4,
-              background: "linear-gradient(180deg, rgba(15,23,42,0.96), rgba(17,24,39,0.96))",
-              border: "1px solid #1f2937",
-              minHeight: 260,
-              width: "100%",
+              position: "absolute",
+              top: 45,
+              left: 0,
+              right: 0,
+              height: "2px",
+              background: "linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6)",
+              borderRadius: "99px",
+              zIndex: 0,
             }}
-          >
-            <Typography variant="h5" fontWeight="bold" sx={{ color: "#fff" }}>
-              Today Timeline
-            </Typography>
-            <Typography sx={{ color: "#64748b", mt: 1, mb: 4 }}>
-              Your schedule organised by time.
-            </Typography>
+          />
 
-            {todayEvents.length === 0 ? (
-              <Typography sx={{ color: "#64748b" }}>
-                No items planned for today.
-              </Typography>
-            ) : (
-              // CONTAINER COM SCROLL APENAS AQUI
+          {todayEvents.map((event, index) => {
+            const itemData = event.extendedProps?.itemData || {};
+            const timeLabel = `${itemData.startTime || "Anytime"}${itemData.endTime ? ` - ${itemData.endTime}` : ""}`;
+
+            return (
               <Box
+                key={event.id}
                 sx={{
-                  width: "100%",
-                  overflowX: "auto",
-                  overflowY: "hidden",
-                  pb: 2,
-                  // Remove margins negativas - vamos fazer diferente
-                  
-                  "&::-webkit-scrollbar": {
-                    height: "8px",
-                  },
-                  "&::-webkit-scrollbar-track": {
-                    background: "#020617",
-                    borderRadius: "99px",
-                  },
-                  "&::-webkit-scrollbar-thumb": {
-                    background: "#64748b",
-                    borderRadius: "99px",
-                  },
-                  "&::-webkit-scrollbar-thumb:hover": {
-                    background: "#94a3b8",
-                  },
+                  position: "relative",
+                  width: { xs: "260px", sm: "280px" },
+                  flexShrink: 0,
+                  zIndex: 1,
                 }}
               >
+                {/* Timeline dot */}
                 <Box
                   sx={{
+                    width: "14px",
+                    height: "14px",
+                    borderRadius: "50%",
+                    background: "#3b82f6",
+                    boxShadow: "0 0 0 3px rgba(59,130,246,0.2)",
+                    mx: "auto",
+                    mb: 1.5,
                     position: "relative",
-                    display: "flex",
-                    gap: 3,
-                    width: "max-content",
-                    minWidth: "100%",
-                    pt: 4,
+                    zIndex: 2,
+                  }}
+                />
+
+                <Typography
+                  sx={{
+                    color: "#60a5fa",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    mb: 1,
+                    textAlign: "center",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  {/* Linha do tempo */}
-                  <Box
+                  {timeLabel}
+                </Typography>
+
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    background: "#0f172a",
+                    border: "1px solid #334155",
+                    transition: "all 0.2s ease",
+                    cursor: "pointer",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      borderColor: "#3b82f6",
+                      background: "#1e293b",
+                    },
+                  }}
+                  onClick={() => {
+                    setSelectedEvent(event);
+                    setOpenEventModal(true);
+                  }}
+                >
+                  <Typography
                     sx={{
-                      position: "absolute",
-                      top: 47,
-                      left: 0,
-                      right: 0,
-                      height: "2px",
-                      background: "linear-gradient(90deg, #2563eb, #7c3aed, #2563eb)",
-                      borderRadius: "99px",
+                      color: "#f1f5f9",
+                      fontWeight: 700,
+                      mb: 1,
+                      fontSize: "0.9rem",
+                      wordBreak: "break-word",
                     }}
-                  />
-
-                  {todayEvents.map((event) => {
-                    const itemData = event.extendedProps?.itemData || {};
-                    const timeLabel = `${itemData.startTime || "Anytime"}${itemData.endTime ? ` - ${itemData.endTime}` : ""}`;
-
-                    return (
-                      <Box
-                        key={event.id}
-                        sx={{
-                          position: "relative",
-                          width: 280,
-                          flex: "0 0 280px",
-                        }}
-                      >
-                        {/* Ponto na linha do tempo */}
-                        <Box
-                          sx={{
-                            width: 16,
-                            height: 16,
-                            borderRadius: "50%",
-                            background: "#2563eb",
-                            boxShadow: "0 0 18px rgba(37,99,235,0.8)",
-                            mx: "auto",
-                            mb: 2,
-                            position: "relative",
-                            zIndex: 2,
-                          }}
-                        />
-
-                        <Typography
-                          sx={{
-                            color: "#60a5fa",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            mb: 1,
-                            textAlign: "center",
-                          }}
-                        >
-                          {timeLabel}
-                        </Typography>
-
-                        <Box
-                          sx={{
-                            p: 2,
-                            borderRadius: 3,
-                            background: "#0b1120",
-                            border: "1px solid #1f2937",
-                            minHeight: 105,
-                            transition: "all 0.2s ease",
-                            cursor: "pointer",
-                            "&:hover": {
-                              transform: "translateY(-4px)",
-                              borderColor: "#3b82f6",
-                              boxShadow: "0 8px 16px rgba(0,0,0,0.3)",
-                            },
-                          }}
-                          onClick={() => {
-                            setSelectedEvent(event);
-                            setOpenEventModal(true);
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              color: "#f8fafc",
-                              fontWeight: 800,
-                              mb: 0.8,
-                              fontSize: "0.9rem",
-                            }}
-                          >
-                            {event.title}
-                          </Typography>
-                          <Typography
-                            sx={{
-                              color: "#94a3b8",
-                              fontSize: "0.75rem",
-                            }}
-                          >
-                            {event.extendedProps?.description || event.extendedProps?.type || "Personal item"}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    );
-                  })}
+                  >
+                    {event.title}
+                  </Typography>
+                  
+                  <Typography
+                    sx={{
+                      color: "#94a3b8",
+                      fontSize: "0.75rem",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {event.extendedProps?.description || 
+                     event.extendedProps?.type || 
+                     "Personal item"}
+                  </Typography>
                 </Box>
               </Box>
-            )}
-          </Box>
+            );
+          })}
         </Box>
+      </Box>
+    )}
+  </Box>
+</Box>
 
         <EventDetailsModal
           open={openEventModal}

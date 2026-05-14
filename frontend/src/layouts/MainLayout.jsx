@@ -132,27 +132,6 @@ const MainLayout = ({ children }) => {
                 + New Tab
             </Button>
             <List sx={{ mt: 1, mb: 3 }}>
-                {/* Tabs Overview */}
-                <ListItemButton
-                    onClick={() => {
-                        navigate("/tabs-overview");
-                        if (isMobile) setOpen(false);
-                    }}
-                    sx={{
-                        borderRadius: 2,
-                        mb: 1,
-                        color: location.pathname === "/" ? "#fff" : "#cbd5e1",
-                        background:
-                        location.pathname === "/" ? "#1e293b" : "transparent",
-                        "&:hover": {
-                            background: "#111827",
-                        },
-                    }}
-                    >
-                    <SpaceDashboardIcon sx={{ mr: 1 }} />
-                    <ListItemText primary="Tabs Overview" />
-                </ListItemButton>
-
                 {/* DASHBOARD */}
                 
                 <ListItemButton
@@ -377,10 +356,13 @@ const MainLayout = ({ children }) => {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    p: 3,
-                    mt: isMobile ? 8 : 0,
-                    minWidth: 0, // IMPORTANTE: permite que o conteúdo encolha
-                    overflowX: "hidden", 
+    p: { xs: 2, sm: 3 }, // Padding responsivo
+    mt: isMobile ? 8 : 0,
+    minWidth: 0,
+    overflowX: "hidden",
+    width: "100%",
+    maxWidth: "100vw", // Limita a largura máxima
+    boxSizing: "border-box",
                 }}
             >
                 {children}

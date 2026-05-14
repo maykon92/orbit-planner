@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import http from "http";
+import { Server } from "socket.io";
 
 import connectDB from "./config/db.js";
 
@@ -14,13 +16,57 @@ import postRoutes from "./routes/postRoutes.js";
 import configRoutes from "./routes/configRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
+import conversationRoutes from "./routes/conversationRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 
 import { authGuard } from "./middlewares/authMiddleware.js";
 import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
 
+import { createMessage } from "./services/messageService.js";
+
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:5173", process.env.FRONTEND_URL],
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("joinConversation", (conversationId) => {
+    socket.join(conversationId);
+    console.log(`Socket ${socket.id} joined conversation ${conversationId}`);
+  });
+
+  socket.on("sendMessage", async (payload) => {
+    try {
+      const { conversationId, senderId, text } = payload;
+
+      if (!conversationId || !senderId || !text) return;
+
+      const savedMessage = await createMessage({
+        conversationId,
+        senderId,
+        text,
+      });
+
+      io.to(conversationId).emit("receiveMessage", savedMessage);
+    } catch (error) {
+      console.error("Socket sendMessage error:", error.message);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
 
 app.use(
   cors({
@@ -83,6 +129,8 @@ app.use("/api/posts", postRoutes);
 app.use("/api/config", configRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/conversations", conversationRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
@@ -91,6 +139,6 @@ connectDB();
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

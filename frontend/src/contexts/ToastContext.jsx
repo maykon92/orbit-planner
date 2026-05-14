@@ -42,6 +42,7 @@ export const ToastProvider = ({ children }) => {
           sx={{
             borderRadius: 3,
             fontWeight: 600,
+            background: "#0f172a",
           }}
         >
           {toast.message}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+
 import {
   Box,
   Typography,
@@ -8,25 +9,68 @@ import {
   CardContent,
   Grid,
   Chip,
+  Button,
 } from "@mui/material";
+import MessageIcon from "@mui/icons-material/Message";
 
 import MainLayout from "../../layouts/MainLayout";
 import { getPublicProfile } from "../../services/userPublicService";
+import { toggleFollowUser } from "../../services/userPublicService";
+import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
 import { getImageUrl } from "../../utils/getImageUrl";
+import { createOrGetConversation } from "../../services/conversationService";
 
 const PublicProfile = () => {
   const { id } = useParams();
+  const { user: loggedUser } = useAuth();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
 
+  const [isFollowing, setIsFollowing] = useState(false);
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const loadProfile = async () => {
       const data = await getPublicProfile(id);
+      
+      setIsFollowing(
+        data.user.followers?.some(
+          (followerId) => followerId.toString() === loggedUser?._id?.toString()
+        )
+      );
+
       setProfile(data);
     };
 
     loadProfile();
   }, [id]);
+
+  const handleFollow = async () => {
+    const result = await toggleFollowUser(id);
+
+    setIsFollowing(result.following);
+
+    setProfile((prev) => ({
+      ...prev,
+      stats: {
+        ...prev.stats,
+        followersCount: result.followersCount,
+        followingCount: result.followingCount,
+      },
+    }));
+
+    showToast(result.following ? "User followed." : "User unfollowed.");
+  };
+
+  const handleMessage = async () => {
+    const conversation = await createOrGetConversation(user._id);
+    navigate("/messages", {
+      state: {
+        conversationId: conversation._id,
+      },
+    });
+  };
 
   if (!profile) {
     return (
@@ -72,6 +116,49 @@ const PublicProfile = () => {
               {user.bio || "No bio added yet."}
             </Typography>
 
+            {loggedUser?._id !== user._id && (
+              <Button
+                variant={isFollowing ? "outlined" : "contained"}
+                onClick={handleFollow}
+                sx={{
+                  mt: 2,
+                  borderRadius: 3,
+                  px: 3,
+                  fontWeight: 800,
+                  color: isFollowing ? "#bfdbfe" : "#fff",
+                  borderColor: "#2563eb",
+                  background: isFollowing ? "transparent" : "#2563eb",
+                  "&:hover": {
+                    background: isFollowing ? "rgba(37,99,235,0.12)" : "#1d4ed8",
+                  },
+                }}
+              >
+                {isFollowing ? "Following" : "Follow"}
+              </Button>
+            )}
+
+            {loggedUser?._id !== user._id && (
+              <Button
+                variant="outlined"
+                startIcon={<MessageIcon />}
+                onClick={handleMessage}
+                sx={{
+                  mt: 2,
+                  ml: 2,
+                  borderRadius: 3,
+                  px: 3,
+                  fontWeight: 800,
+                  color: "#bfdbfe",
+                  borderColor: "#2563eb",
+                  "&:hover": {
+                    background: "rgba(37,99,235,0.12)",
+                  },
+                }}
+              >
+                Message
+              </Button>
+            )}
+
             <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
               <Chip
                 label={`${stats.totalPosts} posts`}
@@ -80,6 +167,15 @@ const PublicProfile = () => {
               <Chip
                 label={`${stats.totalLikes} likes`}
                 sx={{ background: "#14532d", color: "#bbf7d0" }}
+              />
+              <Chip
+                label={`${stats.followersCount || 0} followers`}
+                sx={{ background: "#172554", color: "#bfdbfe" }}
+              />
+
+              <Chip
+                label={`${stats.followingCount || 0} following`}
+                sx={{ background: "#1e293b", color: "#cbd5e1" }}
               />
             </Box>
           </Box>

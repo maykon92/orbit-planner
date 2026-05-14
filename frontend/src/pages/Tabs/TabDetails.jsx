@@ -14,6 +14,8 @@ import MainLayout from "../../layouts/MainLayout";
 import api from "../../services/api";
 import CreateItemModal from "../../components/CreateItemModal";
 import EditTabModal from "../../components/EditTabModal";
+import EditItemModal from "../../components/EditItemModal";
+import { deleteItem, updateItem } from "../../services/itemService";
 import { updateTab, deleteTab } from "../../services/tabService";
 import { useToast } from "../../contexts/ToastContext";
 import { useConfirm } from "../../contexts/ConfirmContext";
@@ -30,7 +32,6 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
-
 const TabDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -44,6 +45,9 @@ const TabDetails = () => {
     const [openModal, setOpenModal] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
     const [openEditTab, setOpenEditTab] = useState(false);
+    const [itemMenuAnchor, setItemMenuAnchor] = useState(null);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [openEditItem, setOpenEditItem] = useState(false);
 
     useEffect(() => {
         const loadTabData = async () => {
@@ -95,6 +99,57 @@ const TabDetails = () => {
 
         showToast("Tab deleted successfully.");
         navigate("/");
+    };
+
+    const handleOpenItemMenu = (event, item) => {
+        event.stopPropagation();
+        setItemMenuAnchor(event.currentTarget);
+        setSelectedItem(item);
+        };
+
+        const handleCloseItemMenu = () => {
+        setItemMenuAnchor(null);
+    };
+
+    const handleDeleteItem = async () => {
+        if (!selectedItem?._id) return;
+
+        const itemToDelete = selectedItem;
+
+        handleCloseItemMenu();
+
+        const confirmed = await confirmAction({
+            title: "Delete item?",
+            message: "This item will be permanently removed from this space.",
+        });
+
+        if (!confirmed) return;
+
+        await deleteItem(itemToDelete._id);
+
+        setItems((prev) => prev.filter((item) => item._id !== itemToDelete._id));
+
+        showToast("Item deleted successfully.");
+        setSelectedItem(null);
+    };
+
+    const handleOpenEditItem = () => {
+        setOpenEditItem(true);
+        handleCloseItemMenu();
+    };
+
+    const handleSaveItemEdit = async (formData) => {
+        if (!selectedItem?._id) return;
+
+        const updatedItem = await updateItem(selectedItem._id, formData);
+
+        setItems((prev) =>
+            prev.map((item) => (item._id === updatedItem._id ? updatedItem : item))
+        );
+
+        showToast("Item updated successfully.");
+        setOpenEditItem(false);
+        setSelectedItem(null);
     };
 
     const getTabIcon = (type) => {
@@ -226,16 +281,12 @@ const TabDetails = () => {
                                     display: "flex",
                                     flexDirection: "column",
                                     justifyContent: "space-between",
-
+                                    position: "relative",
                                     borderRadius: 4,
-
                                     background:
                                     "linear-gradient(135deg, rgba(15,23,42,0.96), rgba(30,41,59,0.72))",
-
-                                    border: "1px solid #1f2937",
-
+                                    border: "1px solid #1f2937", 
                                     transition: "0.25s",
-
                                     "&:hover": {
                                         transform: "translateY(-4px)",
                                         borderColor: "#2563eb",
@@ -243,6 +294,17 @@ const TabDetails = () => {
                                     },
                                 }}
                             >
+                                <IconButton
+                                    onClick={(e) => handleOpenItemMenu(e, item)}
+                                    sx={{
+                                        position: "absolute",
+                                        top: 12,
+                                        right: 12,
+                                        color: "#94a3b8",
+                                    }}
+                                    >
+                                    <MoreVertIcon />
+                                </IconButton>
                                 <CardContent sx={{ p: 3 }}>
                                     <Chip
                                         label={item.status}
@@ -347,6 +409,30 @@ const TabDetails = () => {
                 onClose={() => setOpenEditTab(false)}
                 tab={tab}
                 onSave={handleSaveTab}
+            />
+
+            <Menu
+                anchorEl={itemMenuAnchor}
+                open={Boolean(itemMenuAnchor)}
+                onClose={handleCloseItemMenu}
+                PaperProps={{
+                    sx: {
+                    background: "#0f172a",
+                    color: "#f8fafc",
+                    border: "1px solid #1f2937",
+                    },
+                }}
+            >
+                <MenuItem onClick={handleOpenEditItem}>Edit Item</MenuItem>
+                <MenuItem onClick={handleDeleteItem} sx={{ color: "#f87171" }}>
+                    Delete Item
+                </MenuItem>
+            </Menu>
+            <EditItemModal
+                open={openEditItem}
+                onClose={() => setOpenEditItem(false)}
+                item={selectedItem}
+                onSave={handleSaveItemEdit}
             />
         </MainLayout>
     );

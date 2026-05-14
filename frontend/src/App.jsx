@@ -2,13 +2,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
-import Dashboard from "./pages/Dashboard/Dashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import TabDetails from "./pages/Tabs/TabDetails";
 import LifeDashboard from "./pages/Dashboard/LifeDashboard";
 import Feed from "./pages/Feed/Feed";
 import ProfileSettings from "./pages/Profile/ProfileSettings";
 import PublicProfile from "./pages/Profile/PublicProfile";
+import Messages from "./pages/Messages/Messages";
 
 function App() {
   return (
@@ -17,15 +17,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route
-          path="/tabs-overview"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        
         <Route
           path="/tabs/:id"
           element={
@@ -67,6 +58,15 @@ function App() {
           element={
             <ProtectedRoute>
               <PublicProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <Messages />
             </ProtectedRoute>
           }
         />
