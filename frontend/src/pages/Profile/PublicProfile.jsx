@@ -14,6 +14,8 @@ import {
 import MessageIcon from "@mui/icons-material/Message";
 
 import MainLayout from "../../layouts/MainLayout";
+import PostDetailsModal from "../../components/PostDetailsModal";
+import { likePost, addComment } from "../../services/postService";
 import { getPublicProfile } from "../../services/userPublicService";
 import { toggleFollowUser } from "../../services/userPublicService";
 import { useAuth } from "../../contexts/AuthContext";
@@ -29,6 +31,8 @@ const PublicProfile = () => {
 
   const [isFollowing, setIsFollowing] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [openPostDetails, setOpenPostDetails] = useState(false);
+  const [detailsPost, setDetailsPost] = useState(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -70,6 +74,60 @@ const PublicProfile = () => {
         conversationId: conversation._id,
       },
     });
+  };
+
+  const handleOpenPostDetails = (post) => {
+    setDetailsPost({
+      ...post,
+      userId:
+        typeof post.userId === "object"
+          ? post.userId
+          : profile.user,
+    });
+
+    setOpenPostDetails(true);
+  };
+
+  const handleLike = async (postId) => {
+    const result = await likePost(postId);
+
+    setProfile((prev) => ({
+      ...prev,
+      posts: prev.posts.map((post) =>
+        post._id === postId
+          ? {
+              ...post,
+              likes: result.post.likes,
+            }
+          : post
+      ),
+    }));
+
+    setDetailsPost((prev) =>
+      prev?._id === postId
+        ? {
+            ...prev,
+            likes: result.post.likes,
+          }
+        : prev
+    );
+  };
+
+  const handleComment = async (postId, text) => {
+    if (!text?.trim()) return;
+
+    const updatedPost = await addComment(postId, text);
+
+    setProfile((prev) => ({
+      ...prev,
+      posts: prev.posts.map((post) =>
+        post._id === postId ? updatedPost : post
+      ),
+    }));
+
+    setDetailsPost((prev) =>
+      prev?._id === postId ? updatedPost : prev
+    );
   };
 
   if (!profile) {
@@ -222,7 +280,12 @@ const PublicProfile = () => {
                       objectFit: "contain",
                       background: "#020617",
                       borderRadius: 3,
+                      cursor: "pointer",
+                      "&:hover": {
+                        opacity: 0.92,
+                      },
                     }}
+                    onClick={() => handleOpenPostDetails(post)}
                   />
                 )}
               </CardContent>
@@ -230,6 +293,14 @@ const PublicProfile = () => {
           </Grid>
         ))}
       </Grid>
+      <PostDetailsModal
+        open={openPostDetails}
+        onClose={() => setOpenPostDetails(false)}
+        post={detailsPost}
+        user={loggedUser}
+        onLike={handleLike}
+        onComment={handleComment}
+      />
     </MainLayout>
   );
 };

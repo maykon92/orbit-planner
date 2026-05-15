@@ -28,6 +28,7 @@ import { updatePost, deletePost } from "../../services/postService";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { useConfirm } from "../../contexts/ConfirmContext";
+import PostDetailsModal from "../../components/PostDetailsModal";
 
 const Feed = () => {
   const { user } = useAuth();
@@ -42,6 +43,8 @@ const Feed = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
   const [openEditPost, setOpenEditPost] = useState(false);
+  const [openPostDetails, setOpenPostDetails] = useState(false);
+  const [detailsPost, setDetailsPost] = useState(null);
 
   useEffect(() => {
     const loadFeed = async () => {
@@ -60,23 +63,38 @@ const Feed = () => {
         post._id === postId ? { ...post, likes: result.post.likes } : post
       )
     );
+
+    setDetailsPost((prev) =>
+      prev?._id === postId
+        ? {
+            ...prev,
+            likes: result.post?.likes || prev.likes,
+          }
+        : prev
+    );
   };
 
-  const handleComment = async (postId) => {
-    const text = comments[postId];
+  const handleComment = async (postId, modalText = null) => {
+    const text = modalText ?? comments[postId];
 
     if (!text?.trim()) return;
 
     const updatedPost = await addComment(postId, text);
-
+    console.log("Updated post after comment:", updatedPost);
     setPosts((prev) =>
       prev.map((post) => (post._id === postId ? updatedPost : post))
     );
 
-    showToast("Comment added successfully.");
+    setDetailsPost((prev) =>
+      prev?._id === postId ? updatedPost : prev
+    );
 
     setComments((prev) => ({ ...prev, [postId]: "" }));
-    setOpenComments((prev) => ({ ...prev, [postId]: true }));
+
+    setOpenComments((prev) => ({
+      ...prev,
+      [postId]: true,
+    }));
   };
 
   const handleOpenMenu = (event, post) => {
@@ -128,6 +146,11 @@ const Feed = () => {
     setSelectedPost(null);
   };
 
+  const handleOpenPostDetails = (post) => {
+    setDetailsPost(post);
+    setOpenPostDetails(true);
+  };
+
   return (
     <MainLayout>
       <Box sx={{ maxWidth: 760, mx: "auto" }}>
@@ -147,10 +170,6 @@ const Feed = () => {
               sx={{ color: "#f8fafc", mb: 1 }}
             >
               Social Feed
-            </Typography>
-
-            <Typography sx={{ color: "#94a3b8" }}>
-              Explore public memories, plans and moments shared by users.
             </Typography>
           </Box>
 
@@ -239,7 +258,12 @@ const Feed = () => {
                     background: "#020617",
                     borderRadius: 3,
                     mb: 2,
+                    cursor: "pointer",
+                    "&:hover": {
+                      opacity: 0.92,
+                    },
                   }}
+                  onClick={() => handleOpenPostDetails(post)}
                 />
               )}
 
@@ -462,6 +486,15 @@ const Feed = () => {
         onClose={() => setOpenEditPost(false)}
         post={selectedPost}
         onSave={handleSaveEdit}
+      />
+
+      <PostDetailsModal
+        open={openPostDetails}
+        onClose={() => setOpenPostDetails(false)}
+        post={detailsPost}
+        user={user}
+        onLike={handleLike}
+        onComment={handleComment}
       />
     </MainLayout>
   );

@@ -7,8 +7,11 @@ import {
   TextField,
   IconButton,
   CircularProgress,
+  useMediaQuery, 
+  useTheme,
 } from "@mui/material";
 
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SendIcon from "@mui/icons-material/Send";
 
 import MainLayout from "../../layouts/MainLayout";
@@ -21,12 +24,15 @@ import { getMessages } from "../../services/messageService";
 const Messages = () => {
   const { user } = useAuth();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
 
   const getOtherUser = (conversation) => {
     return conversation.participants.find(
@@ -113,13 +119,20 @@ const Messages = () => {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "320px 1fr" },
+          gridTemplateColumns: {
+            xs: "1fr",
+            md: "320px 1fr",
+          },
           gap: 3,
-          height: "calc(100vh - 180px)",
+          height: {
+            xs: "calc(100vh - 150px)",
+            md: "calc(100vh - 180px)",
+          },
         }}
       >
         <Box
           sx={{
+            display: isMobile && mobileChatOpen ? "none" : "block",
             borderRadius: 4,
             background: "#0f172a",
             border: "1px solid #1f2937",
@@ -150,7 +163,10 @@ const Messages = () => {
                 return (
                   <Box
                     key={conversation._id}
-                    onClick={() => setSelectedConversation(conversation)}
+                    onClick={() => {
+                      setSelectedConversation(conversation);
+                      if (isMobile) setMobileChatOpen(true);
+                    }}
                     sx={{
                       p: 2,
                       display: "flex",
@@ -163,6 +179,14 @@ const Messages = () => {
                       },
                     }}
                   >
+                    {isMobile && (
+                      <IconButton
+                        onClick={() => setMobileChatOpen(false)}
+                        sx={{ color: "#f8fafc" }}
+                      >
+                        <ArrowBackIcon />
+                      </IconButton>
+                    )}
                     <Avatar src={other?.avatar ? getImageUrl(other.avatar) : ""}>
                       {other?.name?.charAt(0)}
                     </Avatar>
@@ -188,12 +212,13 @@ const Messages = () => {
 
         <Box
           sx={{
+            display: isMobile && !mobileChatOpen ? "none" : "flex",
             borderRadius: 4,
             background: "#0f172a",
             border: "1px solid #1f2937",
-            display: "flex",
             flexDirection: "column",
             overflow: "hidden",
+            minHeight: 0,
           }}
         >
           {selectedConversation ? (
@@ -214,9 +239,6 @@ const Messages = () => {
                 <Box>
                   <Typography fontWeight="bold" sx={{ color: "#fff" }}>
                     {otherUser?.name || "User"}
-                  </Typography>
-                  <Typography sx={{ color: "#64748b", fontSize: 13 }}>
-                    Real-time conversation
                   </Typography>
                 </Box>
               </Box>
@@ -263,7 +285,7 @@ const Messages = () => {
 
               <Box
                 sx={{
-                  p: 2,
+                  p: { xs: 1.5, md: 2 },
                   borderTop: "1px solid #1f2937",
                   display: "flex",
                   gap: 2,
@@ -283,11 +305,9 @@ const Messages = () => {
                   sx={{
                     input: { color: "#fff" },
                     "& .MuiOutlinedInput-root": {
+                      minHeight: 48,
                       background: "#111827",
                       borderRadius: 4,
-                      "& fieldset": { borderColor: "#1f2937" },
-                      "&:hover fieldset": { borderColor: "#334155" },
-                      "&.Mui-focused fieldset": { borderColor: "#2563eb" },
                     },
                   }}
                 />
@@ -295,8 +315,9 @@ const Messages = () => {
                 <IconButton
                   onClick={handleSend}
                   sx={{
-                    width: 54,
-                    height: 54,
+                    width: { xs: 48, md: 54 },
+                    height: { xs: 48, md: 54 },
+                    flexShrink: 0,
                     background: "#2563eb",
                     color: "#fff",
                     "&:hover": {
