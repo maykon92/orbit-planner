@@ -165,9 +165,13 @@ const Feed = () => {
         >
           <Box>
             <Typography
-              variant="h3"
-              fontWeight="bold"
-              sx={{ color: "#f8fafc", mb: 1 }}
+              sx={{
+                fontSize: { xs: 38, md: 52 },
+                fontWeight: 800,
+                color: "#f8fafc",
+                lineHeight: 1,
+                letterSpacing: "-2px",
+              }}
             >
               Social Feed
             </Typography>
@@ -217,7 +221,7 @@ const Feed = () => {
 
                   <Box>
                     <Typography fontWeight="bold">{post.userId?.name || "User"}</Typography>
-                    <Typography sx={{ color: "#64748b", fontSize: 13 }}>
+                    <Typography sx={{ color: "#64748b", fontSize: 13, mt: 0.5, }}>
                       {post.itemId?.title || "Personal post"}
                     </Typography>
                   </Box>
@@ -243,7 +247,7 @@ const Feed = () => {
                   )}
               </Box>
 
-              <Typography sx={{ color: "#cbd5e1", lineHeight: 1.7, mb: 2 }}>
+              <Typography sx={{ color: "#f1f5f9", lineHeight: 1.7, mb: 2, fontSize: 15, whiteSpace: "pre-wrap", }}>
                 {post.caption}
               </Typography>
 
@@ -253,15 +257,16 @@ const Feed = () => {
                   src={getImageUrl(post.photos[0])}
                   sx={{
                     width: "100%",
-                    maxHeight: 500,
+                    height: { xs: 320, md: 520 },
                     objectFit: "contain",
                     background: "#020617",
                     borderRadius: 3,
                     mb: 2,
-                    cursor: "pointer",
+                    transition: "0.3s ease",
                     "&:hover": {
-                      opacity: 0.92,
+                      transform: "scale(1.01)",
                     },
+                    cursor: "pointer",
                   }}
                   onClick={() => handleOpenPostDetails(post)}
                 />
@@ -271,14 +276,30 @@ const Feed = () => {
                 <Button
                   startIcon={<FavoriteIcon />}
                   onClick={() => handleLike(post._id)}
-                  sx={{ color: "#f87171" }}
+                  sx={{
+                    color: "#f87171",
+                    borderRadius: 999,
+                    minWidth: 0,
+                    px: 1.5,
+                    "&:hover": {
+                      background: "rgba(248,113,113,0.08)",
+                    },
+                  }}
                 >
                   {post.likes?.length || 0}
                 </Button>
 
                 <Button
                   startIcon={<ChatBubbleOutlineIcon />}
-                  sx={{ color: "#93c5fd" }}
+                  sx={{
+                    color: "#93c5fd",
+                    borderRadius: 999,
+                    minWidth: 0,
+                    px: 1.5,
+                    "&:hover": {
+                      background: "rgba(248,113,113,0.08)",
+                    },
+                  }}
                   onClick={() =>
                     setOpenComments((prev) => ({
                       ...prev,
