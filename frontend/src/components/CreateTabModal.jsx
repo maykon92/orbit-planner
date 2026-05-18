@@ -6,6 +6,9 @@ import {
   Button,
   TextField,
   MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { useState } from "react";
 import { createTab } from "../services/tabService";
@@ -89,38 +92,74 @@ const CreateTabModal = ({ open, onClose, onCreated }) => {
           borderBottom: "1px solid #1f2937",
         }}
       >
-        Create Space
+        Create Tab
       </DialogTitle>
 
       <DialogContent sx={{ pt: 3 }}>
-        <TextField
-          fullWidth
-          select
-          label="Type"
-          margin="normal"
-          value={form.type}
-          sx={fieldSx}
-          selectprops={{
-            MenuProps: {
-                PaperProps: {
+        <FormControl fullWidth margin="normal" sx={fieldSx}>
+          <InputLabel sx={{ color: "#60a5fa" }}>Type</InputLabel>
+
+          <Select
+            label="Type"
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value })}
+            MenuProps={{
+              PaperProps: {
                 sx: {
-                    background: "#0f172a",
+                  background: "#0f172a !important",
+                  color: "#f8fafc",
+                  border: "1px solid #1f2937",
+                  borderRadius: 3,
+                  mt: 1,
+
+                  "& .MuiMenuItem-root": {
                     color: "#f8fafc",
-                    border: "1px solid #1f2937",
+                    fontSize: 15,
+                    borderRadius: 2,
+                    mx: 1,
+                    my: 0.5,
+                  },
+
+                  "& .MuiMenuItem-root:hover": {
+                    background: "rgba(37,99,235,0.18)",
+                  },
+
+                  "& .Mui-selected": {
+                    background: "rgba(37,99,235,0.28) !important",
+                    color: "#60a5fa",
+                  },
                 },
-                },
-            },
-          }}
-          onChange={(e) =>
-            setForm({ ...form, type: e.target.value })
-          }
-        >
-          {tabTypes.map((type) => (
-            <MenuItem key={type} value={type}>
-              {type}
-            </MenuItem>
-          ))}
-        </TextField>
+              },
+            }}
+            sx={{
+              background: "#111827",
+              borderRadius: 3,
+              color: "#f8fafc",
+
+              "& .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#2563eb",
+              },
+
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#60a5fa",
+              },
+
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderColor: "#2563eb",
+              },
+
+              "& .MuiSvgIcon-root": {
+                color: "#94a3b8",
+              },
+            }}
+          >
+            {tabTypes.map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </DialogContent>
 
       <DialogActions>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -35,6 +35,7 @@ const Feed = () => {
   const { showToast } = useToast();
   const { confirmAction } = useConfirm();
   const navigate = useNavigate();
+  const commentInputRefs = useRef({});
 
   const [posts, setPosts] = useState([]);
   const [comments, setComments] = useState({});
@@ -149,6 +150,24 @@ const Feed = () => {
   const handleOpenPostDetails = (post) => {
     setDetailsPost(post);
     setOpenPostDetails(true);
+  };
+
+  const handleReplyComment = (postId, commentUserName) => {
+    const mention = `@${commentUserName || "User"} `;
+
+    setComments((prev) => ({
+      ...prev,
+      [postId]: mention,
+    }));
+
+    setOpenComments((prev) => ({
+      ...prev,
+      [postId]: true,
+    }));
+
+    setTimeout(() => {
+      commentInputRefs.current[postId]?.focus();
+    }, 100);
   };
 
   return (
@@ -386,12 +405,19 @@ const Feed = () => {
                           </Box>
 
                           <Typography
+                            onClick={() =>
+                              handleReplyComment(post._id, comment.userId?.name)
+                            }
                             sx={{
                               color: "#60a5fa",
                               fontSize: 12,
                               mt: 0.7,
                               ml: 1,
                               cursor: "pointer",
+                              fontWeight: 700,
+                              "&:hover": {
+                                textDecoration: "underline",
+                              },
                             }}
                           >
                             Reply
@@ -418,8 +444,12 @@ const Feed = () => {
                 >
                   {post.userId?.name?.charAt(0) || "U"}
                 </Avatar>
+                {console.log("Comments for post", post._id, ":", comments[post._id])}
 
                 <TextField
+                  inputRef={(el) => {
+                    commentInputRefs.current[post._id] = el;
+                  }}
                   size="small"
                   fullWidth
                   placeholder="Write a comment..."

@@ -13,6 +13,7 @@ import {
 
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
+import { CircularProgress } from "@mui/material";
 
 const Login = () => {
   const { login } = useAuth();
@@ -22,15 +23,20 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      setLoading(true);
+
       await login(form.email, form.password);
       navigate("/");
     } catch (err) {
       alert("Invalid email or password");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -148,6 +154,7 @@ const Login = () => {
 
               <Button
                 fullWidth
+                disabled={loading}
                 type="submit"
                 variant="contained"
                 sx={{
@@ -158,8 +165,36 @@ const Login = () => {
                   fontWeight: 800,
                 }}
               >
-                Login
+                {loading ? (
+                  <>
+                    <CircularProgress
+                      size={18}
+                      sx={{
+                        color: "#fff",
+                        mr: 1,
+                      }}
+                    />
+
+                    Connecting...
+                  </>
+                ) : (
+                  "Login"
+                )}
               </Button>
+
+              {loading && (
+                <Typography
+                  sx={{
+                    mt: 2,
+                    color: "#94a3b8",
+                    textAlign: "center",
+                    fontSize: 13,
+                  }}
+                >
+                  Please wait. This may take a few moments while the
+                  server wakes up.
+                </Typography>
+              )}
             </form>
 
             <Typography sx={{ color: "#94a3b8", mt: 3, textAlign: "center" }}>

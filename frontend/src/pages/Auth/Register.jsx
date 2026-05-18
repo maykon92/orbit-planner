@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-
 import {
   Box,
   Button,
@@ -25,15 +24,19 @@ const Register = () => {
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       await register(form);
       navigate("/");
     } catch (err) {
       alert("Error creating account");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -182,6 +185,7 @@ const Register = () => {
 
               <Button
                 fullWidth
+                disabled={loading}
                 type="submit"
                 variant="contained"
                 sx={{
@@ -192,8 +196,34 @@ const Register = () => {
                   fontWeight: 800,
                 }}
               >
-                Create Account
+                {loading ? (
+                  <>
+                    <CircularProgress
+                      size={18}
+                      sx={{
+                        color: "#fff",
+                        mr: 1,
+                      }}
+                    />
+
+                    Creating account...
+                  </>
+                ) : (
+                  "CREATE ACCOUNT"
+                )}
               </Button>
+              {loading && (
+                <Typography
+                  sx={{
+                    mt: 2,
+                    color: "#94a3b8",
+                    textAlign: "center",
+                    fontSize: 13,
+                  }}
+                >
+                  Please wait. Initial loading may take a few moments.
+                </Typography>
+              )}
             </form>
 
             <Typography
