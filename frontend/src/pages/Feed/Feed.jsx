@@ -437,9 +437,7 @@ const Feed = () => {
                 <Avatar 
                   sx={{ width: 36, height: 36 }}
                   src={
-                    post.userId?.avatar
-                      ? getImageUrl(post.userId.avatar)
-                      : ""
+                    user?.avatar ? getImageUrl(user.avatar) : ""
                   }
                 >
                   {post.userId?.name?.charAt(0) || "U"}
