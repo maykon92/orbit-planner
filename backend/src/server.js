@@ -18,6 +18,7 @@ import userRoutes from "./routes/userRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import conversationRoutes from "./routes/conversationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 import { authGuard } from "./middlewares/authMiddleware.js";
 import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
@@ -131,7 +132,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
-
+app.use("/api/notifications", notificationRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

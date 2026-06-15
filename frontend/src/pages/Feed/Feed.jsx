@@ -10,25 +10,40 @@ import {
   Chip,
   Button,
   TextField,
+  IconButton,
+  Stack,
+  Paper,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutlineSharp";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
+import MessageIcon from "@mui/icons-material/Message";
+import EditIcon from "@mui/icons-material/Edit";
+import PhotoIcon from "@mui/icons-material/Photo";
+import MoodIcon from "@mui/icons-material/Mood";
+import PlaceIcon from "@mui/icons-material/Place";
+import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 
 import MainLayout from "../../layouts/MainLayout";
-import { getPublicFeed, likePost, addComment } from "../../services/postService";
-import CreatePostModal from "../../components/CreatePostModal";
 import { getImageUrl } from "../../utils/getImageUrl";
+import {
+  getPublicFeed,
+  likePost,
+  addComment,
+  updatePost,
+  deletePost,
+} from "../../services/postService";
+import { getNotifications } from "../../services/notificationService";
+import CreatePostModal from "../../components/CreatePostModal";
 import EditPostModal from "../../components/EditPostModal";
-import { updatePost, deletePost } from "../../services/postService";
+import PostDetailsModal from "../../components/PostDetailsModal";
+import NotificationBell from "../../components/NotificationBell";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { useConfirm } from "../../contexts/ConfirmContext";
-import PostDetailsModal from "../../components/PostDetailsModal";
 
 const Feed = () => {
   const { user } = useAuth();
@@ -46,6 +61,20 @@ const Feed = () => {
   const [openEditPost, setOpenEditPost] = useState(false);
   const [openPostDetails, setOpenPostDetails] = useState(false);
   const [detailsPost, setDetailsPost] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const data = await getNotifications();
+        setNotifications(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    loadNotifications();
+  }, []);
 
   useEffect(() => {
     const loadFeed = async () => {
@@ -81,14 +110,12 @@ const Feed = () => {
     if (!text?.trim()) return;
 
     const updatedPost = await addComment(postId, text);
-    console.log("Updated post after comment:", updatedPost);
+
     setPosts((prev) =>
       prev.map((post) => (post._id === postId ? updatedPost : post))
     );
 
-    setDetailsPost((prev) =>
-      prev?._id === postId ? updatedPost : prev
-    );
+    setDetailsPost((prev) => (prev?._id === postId ? updatedPost : prev));
 
     setComments((prev) => ({ ...prev, [postId]: "" }));
 
@@ -172,339 +199,586 @@ const Feed = () => {
 
   return (
     <MainLayout>
-      <Box sx={{ maxWidth: 760, mx: "auto" }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 4,
-            gap: 2,
-          }}
+      <Box
+        sx={{
+          maxWidth: 1180,
+          mx: "auto",
+          px: { xs: 2, md: 4 },
+          pt: 5,
+        }}
+      >
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          justifycontent="space-between"
+          alignitems={{ xs: "flex-start", md: "center" }}
+          spacing={3}
+          sx={{ mb: 4 }}
         >
           <Box>
             <Typography
+              variant="h1"
               sx={{
                 fontSize: { xs: 38, md: 52 },
-                fontWeight: 800,
-                color: "#f8fafc",
+                fontWeight: 900,
+                color: "#fff",
+                letterSpacing: "-1.5px",
                 lineHeight: 1,
-                letterSpacing: "-2px",
               }}
             >
               Social Feed
             </Typography>
+
+            <Typography
+              sx={{
+                color: "#8fa0bf",
+                mt: 1,
+                fontSize: 16,
+              }}
+            >
+              Stay connected and share your moments
+            </Typography>
           </Box>
 
-          <Button
-            variant="contained"
+          <Stack direction="row" spacing={2} alignitems="center">
+            <Button
+              variant="outlined"
+              startIcon={<MessageIcon />}
+              onClick={() => navigate("/messages")}
+              sx={{
+                height: 48,
+                px: 3,
+                borderRadius: "14px",
+                color: "#fff",
+                borderColor: "rgba(72, 127, 255, 0.8)",
+                fontWeight: 800,
+                background: "rgba(15, 23, 42, 0.6)",
+                "&:hover": {
+                  borderColor: "#5b8cff",
+                  background: "rgba(47, 109, 246, 0.16)",
+                },
+              }}
+            >
+              Message
+            </Button>
+            
+            <NotificationBell />
+          </Stack>
+        </Stack>
+
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            mb: 3,
+            borderRadius: "20px",
+            background:
+              "linear-gradient(145deg, rgba(18,29,53,.95), rgba(12,20,36,.95))",
+            border: "1px solid rgba(255,255,255,.06)",
+            boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+          }}
+        >
+          <Stack direction="row" spacing={2} alignitems="center">
+            <Avatar
+              src={user?.avatar ? getImageUrl(user.avatar) : ""}
+              sx={{ width: 50, height: 50 }}
+            >
+              {user?.name?.charAt(0) || "U"}
+            </Avatar>
+
+            <Box
+              onClick={() => setOpenCreatePost(true)}
+              sx={{
+                flex: 1,
+                p: 2,
+                borderRadius: 4,
+                background: "rgba(255,255,255,.04)",
+                cursor: "pointer",
+                color: "#94a3b8",
+                border: "1px solid rgba(255,255,255,.06)",
+                "&:hover": {
+                  background: "rgba(255,255,255,.07)",
+                },
+              }}
+            >
+              What's on your mind?
+            </Box>
+          </Stack>
+
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={{ xs: 1.5, sm: 4 }}
             sx={{
-              borderRadius: 3,
-              background: "#2563eb",
-              fontWeight: 700,
-              px: 3,
-            }}
-            onClick={() => setOpenCreatePost(true)}
-          >
-            Create Post
-          </Button>
-        </Box>
-
-        {posts.map((post) => (
-          <Card
-            key={post._id}
-            sx={{
-              mb: 3,
-              borderRadius: 4,
-              background: "#0f172a",
-              color: "#f8fafc",
-              border: "1px solid #1f2937",
-              boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
+              mt: 2,
+              pl: { xs: 0, sm: 8 },
+              color: "#94a3b8",
             }}
           >
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    mb: 2,
-                    cursor: "pointer",
-                  }}
-                  onClick={() => navigate(`/users/${post.userId?._id}`)}
-                >
-                  <Avatar src={post.userId?.avatar ? getImageUrl(post.userId.avatar) : ""}>
-                    {post.userId?.name?.charAt(0) || "U"}
-                  </Avatar>
+          </Stack>
+        </Paper>
 
-                  <Box>
-                    <Typography fontWeight="bold">{post.userId?.name || "User"}</Typography>
-                    <Typography sx={{ color: "#64748b", fontSize: 13, mt: 0.5, }}>
-                      {post.itemId?.title || "Personal post"}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Chip
-                  label={post.visibility}
-                  size="small"
-                  sx={{
-                    ml: "auto",
-                    background: "#172554",
-                    color: "#bfdbfe",
-                  }}
-                  />
-
-                  {post.userId?._id === user?._id && (
-                    <IconButton
-                      onClick={(e) => handleOpenMenu(e, post)}
-                      sx={{ color: "#94a3b8" }}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: {
+              xs: "1fr",
+              lg: "minmax(0, 1fr) 320px",
+            },
+            gap: 3,
+            alignitems: "flex-start",
+          }}
+        >
+          <Box>
+            {posts.map((post) => (
+              <Card
+                key={post._id}
+                sx={{
+                  mb: 3,
+                  borderRadius: 5,
+                  background:
+                    "linear-gradient(145deg, rgba(20,33,61,.98), rgba(15,23,42,.98))",
+                  color: "#f8fafc",
+                  border: "1px solid rgba(255,255,255,.07)",
+                  boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignitems: "flex-start",
+                      gap: 2,
+                      mb: 2,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignitems: "center",
+                        gap: 2,
+                        cursor: "pointer",
+                      }}
+                      onClick={() => navigate(`/users/${post.userId?._id}`)}
                     >
-                      <MoreVertIcon />
-                    </IconButton>
-                  )}
-              </Box>
-
-              <Typography sx={{ color: "#f1f5f9", lineHeight: 1.7, mb: 2, fontSize: 15, whiteSpace: "pre-wrap", }}>
-                {post.caption}
-              </Typography>
-
-              {post.photos?.length > 0 && (
-                <Box
-                  component="img"
-                  src={getImageUrl(post.photos[0])}
-                  sx={{
-                    width: "100%",
-                    height: { xs: 320, md: 520 },
-                    objectFit: "contain",
-                    background: "#020617",
-                    borderRadius: 3,
-                    mb: 2,
-                    transition: "0.3s ease",
-                    "&:hover": {
-                      transform: "scale(1.01)",
-                    },
-                    cursor: "pointer",
-                  }}
-                  onClick={() => handleOpenPostDetails(post)}
-                />
-              )}
-
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Button
-                  startIcon={<FavoriteIcon />}
-                  onClick={() => handleLike(post._id)}
-                  sx={{
-                    color: "#f87171",
-                    borderRadius: 999,
-                    minWidth: 0,
-                    px: 1.5,
-                    "&:hover": {
-                      background: "rgba(248,113,113,0.08)",
-                    },
-                  }}
-                >
-                  {post.likes?.length || 0}
-                </Button>
-
-                <Button
-                  startIcon={<ChatBubbleOutlineIcon />}
-                  sx={{
-                    color: "#93c5fd",
-                    borderRadius: 999,
-                    minWidth: 0,
-                    px: 1.5,
-                    "&:hover": {
-                      background: "rgba(248,113,113,0.08)",
-                    },
-                  }}
-                  onClick={() =>
-                    setOpenComments((prev) => ({
-                      ...prev,
-                      [post._id]: !prev[post._id],
-                    }))
-                  }
-                >
-                  {post.comments?.length || 0}
-                </Button>
-              </Box>
-
-              {openComments[post._id] && (
-                <Box
-                  sx={{
-                    mt: 2,
-                    pt: 2,
-                    borderTop: "1px solid #1f2937",
-                    maxHeight: 260,
-                    overflowY: "auto",
-                    pr: 1,
-                    "&::-webkit-scrollbar": {
-                      width: "6px",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                      background: "#334155",
-                      borderRadius: "10px",
-                    },
-                  }}
-                >
-                  {post.comments?.length > 0 ? (
-                    post.comments.map((comment, index) => (
-                      <Box
-                        key={index}
-                        sx={{
-                          display: "flex",
-                          gap: 1.5,
-                          mb: 2,
-                          alignItems: "flex-start",
-                        }}
+                      <Avatar
+                        src={
+                          post.userId?.avatar
+                            ? getImageUrl(post.userId.avatar)
+                            : ""
+                        }
+                        sx={{ width: 46, height: 46 }}
                       >
-                        <Avatar
-                          src={
-                            comment.userId?.avatar
-                              ? getImageUrl(comment.userId.avatar)
-                              : ""
-                          }
+                        {post.userId?.name?.charAt(0) || "U"}
+                      </Avatar>
+
+                      <Box>
+                        <Typography fontWeight="bold">
+                          {post.userId?.name || "User"}
+                        </Typography>
+                        <Typography
                           sx={{
-                            width: 36,
-                            height: 36,
-                            fontSize: 14,
-                            background: "#4f46e5",
+                            color: "#64748b",
+                            fontSize: 13,
+                            mt: 0.5,
                           }}
-                        ></Avatar>
-
-                        <Box sx={{ flex: 1 }}>
-                          <Box
-                            sx={{
-                              p: 1.5,
-                              borderRadius: 3,
-                              background: "#111827",
-                              border: "1px solid #1f2937",
-                            }}
-                          >
-                            <Typography
-                              sx={{
-                                fontWeight: 700,
-                                color: "#e2e8f0",
-                                fontSize: 14,
-                                mb: 0.5,
-                              }}
-                            >
-                              {comment.userId?.name || "User"}
-                            </Typography>
-
-                            <Typography
-                              sx={{
-                                color: "#cbd5e1",
-                                fontSize: 14,
-                                lineHeight: 1.5,
-                              }}
-                            >
-                              {comment.text}
-                            </Typography>
-                          </Box>
-
-                          <Typography
-                            onClick={() =>
-                              handleReplyComment(post._id, comment.userId?.name)
-                            }
-                            sx={{
-                              color: "#60a5fa",
-                              fontSize: 12,
-                              mt: 0.7,
-                              ml: 1,
-                              cursor: "pointer",
-                              fontWeight: 700,
-                              "&:hover": {
-                                textDecoration: "underline",
-                              },
-                            }}
-                          >
-                            Reply
-                          </Typography>
-                        </Box>
+                        >
+                          {post.itemId?.title || "Personal post"}
+                        </Typography>
                       </Box>
-                    ))
-                  ) : (
-                    <Typography sx={{ color: "#64748b", fontSize: 14 }}>
-                      No comments yet. Be the first to comment.
-                    </Typography>
+                    </Box>
+
+                    <Chip
+                      label={post.visibility}
+                      size="small"
+                      sx={{
+                        ml: "auto",
+                        background: "#172554",
+                        color: "#bfdbfe",
+                        textTransform: "capitalize",
+                      }}
+                    />
+
+                    {post.userId?._id === user?._id && (
+                      <IconButton
+                        onClick={(e) => handleOpenMenu(e, post)}
+                        sx={{ color: "#94a3b8" }}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                    )}
+                  </Box>
+
+                  <Typography
+                    sx={{
+                      color: "#f1f5f9",
+                      lineHeight: 1.7,
+                      mb: 2,
+                      fontSize: 15,
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {post.caption}
+                  </Typography>
+
+                  {post.photos?.length > 0 && (
+                    <Box
+                      component="img"
+                      src={getImageUrl(post.photos[0])}
+                      sx={{
+                        width: "100%",
+                        height: { xs: 320, md: 520 },
+                        objectFit: "contain",
+                        background: "#020617",
+                        borderRadius: 4,
+                        mb: 2,
+                        transition: "0.3s ease",
+                        "&:hover": {
+                          transform: "scale(1.01)",
+                        },
+                        cursor: "pointer",
+                      }}
+                      onClick={() => handleOpenPostDetails(post)}
+                    />
                   )}
-                </Box>
-              )}
 
-              <Box sx={{ display: "flex", gap: 1, mt: 2, alignItems: "center" }}>
-                <Avatar 
-                  sx={{ width: 36, height: 36 }}
-                  src={
-                    user?.avatar ? getImageUrl(user.avatar) : ""
-                  }
-                >
-                  {post.userId?.name?.charAt(0) || "U"}
-                </Avatar>
-                {console.log("Comments for post", post._id, ":", comments[post._id])}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignitems: "center",
+                      gap: 2,
+                      borderTop: "1px solid rgba(255,255,255,.06)",
+                      borderBottom: "1px solid rgba(255,255,255,.06)",
+                      py: 1,
+                      mb: 2,
+                    }}
+                  >
+                    <Button
+                      startIcon={<FavoriteIcon />}
+                      onClick={() => handleLike(post._id)}
+                      sx={{
+                        color: "#f87171",
+                        borderRadius: 999,
+                        minWidth: 0,
+                        px: 1.5,
+                        textTransform: "none",
+                        fontWeight: 700,
+                        "&:hover": {
+                          background: "rgba(248,113,113,0.08)",
+                        },
+                      }}
+                    >
+                      {post.likes?.length || 0} Likes
+                    </Button>
 
-                <TextField
-                  inputRef={(el) => {
-                    commentInputRefs.current[post._id] = el;
-                  }}
-                  size="small"
-                  fullWidth
-                  placeholder="Write a comment..."
-                  value={comments[post._id] || ""}
-                  onChange={(e) =>
-                    setComments((prev) => ({
-                      ...prev,
-                      [post._id]: e.target.value,
-                    }))
-                  }
-                  sx={{
-                    input: { color: "#f8fafc" },
-                    "& .MuiOutlinedInput-root": {
-                      background: "#0b1120",
-                      borderRadius: 3,
-                      "& fieldset": {
-                        borderColor: "#1f2937",
-                      },
-                      "&:hover fieldset": {
-                        borderColor: "#334155",
-                      },
-                    },
-                  }}
-                />
+                    <Button
+                      startIcon={<ChatBubbleOutlineIcon />}
+                      sx={{
+                        color: "#93c5fd",
+                        borderRadius: 999,
+                        minWidth: 0,
+                        px: 1.5,
+                        textTransform: "none",
+                        fontWeight: 700,
+                        "&:hover": {
+                          background: "rgba(147,197,253,0.08)",
+                        },
+                      }}
+                      onClick={() =>
+                        setOpenComments((prev) => ({
+                          ...prev,
+                          [post._id]: !prev[post._id],
+                        }))
+                      }
+                    >
+                      {post.comments?.length || 0} Comments
+                    </Button>
+                  </Box>
 
-                <Button
-                  variant="contained"
-                  onClick={() => handleComment(post._id)}
-                  sx={{
-                    borderRadius: 3,
-                    px: 3,
-                    height: 40,
-                    background: "#2563eb",
-                    fontWeight: 700,
-                  }}
-                >
-                  Send
-                </Button>
+                  {openComments[post._id] && (
+                    <Box
+                      sx={{
+                        mt: 2,
+                        pt: 2,
+                        borderTop: "1px solid #1f2937",
+                        maxHeight: 260,
+                        overflowY: "auto",
+                        pr: 1,
+                        "&::-webkit-scrollbar": {
+                          width: "6px",
+                        },
+                        "&::-webkit-scrollbar-thumb": {
+                          background: "#334155",
+                          borderRadius: "10px",
+                        },
+                      }}
+                    >
+                      {post.comments?.length > 0 ? (
+                        post.comments.map((comment, index) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              display: "flex",
+                              gap: 1.5,
+                              mb: 2,
+                              alignitems: "flex-start",
+                            }}
+                          >
+                            <Avatar
+                              src={
+                                comment.userId?.avatar
+                                  ? getImageUrl(comment.userId.avatar)
+                                  : ""
+                              }
+                              sx={{
+                                width: 36,
+                                height: 36,
+                                fontSize: 14,
+                                background: "#4f46e5",
+                              }}
+                            >
+                              {comment.userId?.name?.charAt(0) || "U"}
+                            </Avatar>
+
+                            <Box sx={{ flex: 1 }}>
+                              <Box
+                                sx={{
+                                  p: 1.5,
+                                  borderRadius: 3,
+                                  background: "#111827",
+                                  border: "1px solid #1f2937",
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontWeight: 700,
+                                    color: "#e2e8f0",
+                                    fontSize: 14,
+                                    mb: 0.5,
+                                  }}
+                                >
+                                  {comment.userId?.name || "User"}
+                                </Typography>
+
+                                <Typography
+                                  sx={{
+                                    color: "#cbd5e1",
+                                    fontSize: 14,
+                                    lineHeight: 1.5,
+                                  }}
+                                >
+                                  {comment.text}
+                                </Typography>
+                              </Box>
+
+                              <Typography
+                                onClick={() =>
+                                  handleReplyComment(
+                                    post._id,
+                                    comment.userId?.name
+                                  )
+                                }
+                                sx={{
+                                  color: "#60a5fa",
+                                  fontSize: 12,
+                                  mt: 0.7,
+                                  ml: 1,
+                                  cursor: "pointer",
+                                  fontWeight: 700,
+                                  "&:hover": {
+                                    textDecoration: "underline",
+                                  },
+                                }}
+                              >
+                                Reply
+                              </Typography>
+                            </Box>
+                          </Box>
+                        ))
+                      ) : (
+                        <Typography sx={{ color: "#64748b", fontSize: 14 }}>
+                          No comments yet. Be the first to comment.
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      mt: 2,
+                      alignitems: "center",
+                    }}
+                  >
+                    <Avatar
+                      sx={{ width: 36, height: 36 }}
+                      src={user?.avatar ? getImageUrl(user.avatar) : ""}
+                    >
+                      {user?.name?.charAt(0) || "U"}
+                    </Avatar>
+
+                    <TextField
+                      inputRef={(el) => {
+                        commentInputRefs.current[post._id] = el;
+                      }}
+                      size="small"
+                      fullWidth
+                      placeholder="Write a comment..."
+                      value={comments[post._id] || ""}
+                      onChange={(e) =>
+                        setComments((prev) => ({
+                          ...prev,
+                          [post._id]: e.target.value,
+                        }))
+                      }
+                      sx={{
+                        input: { color: "#f8fafc" },
+                        "& .MuiOutlinedInput-root": {
+                          background: "#0b1120",
+                          borderRadius: 3,
+                          "& fieldset": {
+                            borderColor: "#1f2937",
+                          },
+                          "&:hover fieldset": {
+                            borderColor: "#334155",
+                          },
+                        },
+                      }}
+                    />
+
+                    <Button
+                      variant="contained"
+                      onClick={() => handleComment(post._id)}
+                      sx={{
+                        borderRadius: 3,
+                        px: 3,
+                        height: 40,
+                        background: "#2563eb",
+                        fontWeight: 700,
+                      }}
+                    >
+                      Send
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
+
+            {posts.length === 0 && (
+              <Box
+                sx={{
+                  p: 4,
+                  borderRadius: 4,
+                  background: "#0f172a",
+                  border: "1px dashed #334155",
+                  color: "#64748b",
+                }}
+              >
+                No public posts yet.
               </Box>
-            </CardContent>
-          </Card>
-        ))}
+            )}
+          </Box>
 
-        {posts.length === 0 && (
           <Box
             sx={{
-              p: 4,
-              borderRadius: 4,
-              background: "#0f172a",
-              border: "1px dashed #334155",
-              color: "#64748b",
+              display: { xs: "none", lg: "block" },
+              position: "sticky",
+              top: 24,
             }}
           >
-            No public posts yet.
+            <Card
+              sx={{
+                mb: 3,
+                borderRadius: 5,
+                background:
+                  "linear-gradient(145deg, rgba(20,33,61,.98), rgba(15,23,42,.98))",
+                border: "1px solid rgba(255,255,255,.07)",
+                color: "#f8fafc",
+              }}
+            >
+              {/* <CardContent>
+                <Typography sx={{ fontWeight: 900, fontSize: 20, mb: 2 }}>
+                  Notifications
+                </Typography>
+
+                <NotificationBell />
+              </CardContent> */}
+              <CardContent>
+                <Typography
+                  sx={{
+                    fontWeight: 900,
+                    fontSize: 20,
+                    mb: 2,
+                  }}
+                >
+                  Notifications
+                </Typography>
+
+                {notifications.length === 0 ? (
+                  <Typography
+                    sx={{
+                      color: "#64748b",
+                      fontSize: 14,
+                    }}
+                  >
+                    No notifications yet.
+                  </Typography>
+                ) : (
+                  notifications.map((notification) => (
+                    <Box
+                      key={notification._id}
+                      sx={{
+                        display: "flex",
+                        gap: 1.5,
+                        mb: 2,
+                        pb: 2,
+                        borderBottom: "1px solid rgba(255,255,255,.05)",
+                      }}
+                    >
+                      <Avatar
+                        src={
+                          notification.sender?.avatar
+                            ? getImageUrl(notification.sender.avatar)
+                            : ""
+                        }
+                        sx={{
+                          width: 42,
+                          height: 42,
+                        }}
+                      />
+
+                      <Box>
+                        <Typography
+                          sx={{
+                            color: "#f8fafc",
+                            fontSize: 14,
+                          }}
+                        >
+                          <strong>
+                            {notification.sender?.name}
+                          </strong>{" "}
+                          {notification.message}
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            color: "#64748b",
+                            fontSize: 12,
+                          }}
+                        >
+                          {new Date(
+                            notification.createdAt
+                          ).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))
+                )}
+              </CardContent>
+            </Card>
           </Box>
-        )}
+        </Box>
       </Box>
+
       <CreatePostModal
         open={openCreatePost}
         onClose={() => setOpenCreatePost(false)}
@@ -512,6 +786,7 @@ const Feed = () => {
           setPosts((prev) => [newPost, ...prev]);
         }}
       />
+
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}

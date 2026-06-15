@@ -1,5 +1,5 @@
 import Item from "../models/Item.js";
-
+import { createNotification } from "../services/notificationService.js";
 import {
   createUserPost,
   findMyPosts,
@@ -157,7 +157,20 @@ export const addComment = async (req, res) => {
       text,
     });
 
+    const newComment = post.comments[post.comments.length - 1];
+
     await post.save();
+
+    if (post.userId.toString() !== req.user._id.toString()) {
+      await createNotification({
+        recipientId: post.userId,
+        senderId: req.user._id,
+        type: "comment",
+        message: "commented on your post",
+        postId: post._id,
+        commentId: newComment._id,
+      });
+    }
 
     const populatedPost = await findPostById(req.params.id);
 
