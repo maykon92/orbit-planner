@@ -51,7 +51,7 @@ export const ConfirmProvider = ({ children }) => {
         onClose={() => handleClose(false)}
         fullWidth
         maxWidth="xs"
-        PaperProps={{
+        paperprops={{
           sx: {
             borderRadius: 4,
             background: "#0f172a",

@@ -1,4 +1,4 @@
-import { toggleFollowUser, findPublicUserProfile } from "../services/userService.js";
+import { toggleFollowUser, findPublicUserProfile, searchUsers  } from "../services/userService.js";
 
 export const getPublicProfile = async (req, res) => {
   try {
@@ -33,5 +33,21 @@ export const followUser = async (req, res) => {
     res.status(400).json({
       message: error.message,
     });
+  }
+};
+
+export const searchProfiles = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || q.trim().length < 2) {
+      return res.json([]);
+    }
+
+    const users = await searchUsers(q, req.user._id);
+
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

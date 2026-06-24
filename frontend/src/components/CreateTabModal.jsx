@@ -104,7 +104,7 @@ const CreateTabModal = ({ open, onClose, onCreated }) => {
             value={form.type}
             onChange={(e) => setForm({ ...form, type: e.target.value })}
             MenuProps={{
-              PaperProps: {
+              paperprops: {
                 sx: {
                   background: "#0f172a !important",
                   color: "#f8fafc",

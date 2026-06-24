@@ -37,10 +37,16 @@ import {
   deletePost,
 } from "../../services/postService";
 import { getNotifications } from "../../services/notificationService";
+import { getUpcomingEvents } from "../../services/itemService";
 import CreatePostModal from "../../components/CreatePostModal";
 import EditPostModal from "../../components/EditPostModal";
 import PostDetailsModal from "../../components/PostDetailsModal";
 import NotificationBell from "../../components/NotificationBell";
+import ProfileSearch from "../../components/ProfileSearch";
+import SidebarCard from "../../components/SidebarCard";
+import NotificationList from "../../components/NotificationList";
+import UpcomingEvents from "../../components/UpcomingEvents";
+
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { useConfirm } from "../../contexts/ConfirmContext";
@@ -62,6 +68,21 @@ const Feed = () => {
   const [openPostDetails, setOpenPostDetails] = useState(false);
   const [detailsPost, setDetailsPost] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+
+  useEffect(() => {
+    const loadUpcomingEvents = async () => {
+      try {
+        const data = await getUpcomingEvents();
+
+        setUpcomingEvents(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    loadUpcomingEvents();
+  }, []);
 
   useEffect(() => {
     const loadNotifications = async () => {
@@ -215,18 +236,40 @@ const Feed = () => {
           sx={{ mb: 4 }}
         >
           <Box>
-            <Typography
-              variant="h1"
+            <Box
               sx={{
-                fontSize: { xs: 38, md: 52 },
-                fontWeight: 900,
-                color: "#fff",
-                letterSpacing: "-1.5px",
-                lineHeight: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
               }}
             >
-              Social Feed
-            </Typography>
+            <Box
+              component="img"
+              src="/orbit_planner_logo.png"
+              alt="Orbit Planner"
+              sx={{
+                width: 60,
+                height: 60,
+                objectFit: "contain",
+                filter: `
+                  drop-shadow(0 0 10px rgba(96, 165, 250, 0.4))
+                  drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))
+                `,
+              }}
+            />
+              <Typography
+                variant="h1"
+                sx={{
+                  fontSize: { xs: 38, md: 52 },
+                  fontWeight: 900,
+                  color: "#fff",
+                  letterSpacing: "-1.5px",
+                  lineHeight: 1,
+                }}
+              >
+                Orbit Feed
+              </Typography>
+            </Box>
 
             <Typography
               sx={{
@@ -239,19 +282,32 @@ const Feed = () => {
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={2} alignitems="center">
+          <Stack
+            direction="row"
+            spacing={2}
+            alignitems="left"
+            sx={{
+              flexShrink: 0,
+            }}
+          >
+            <Box sx={{ width: 300 }}>
+              <ProfileSearch />
+            </Box>
+
             <Button
               variant="outlined"
               startIcon={<MessageIcon />}
               onClick={() => navigate("/messages")}
               sx={{
                 height: 48,
+                minWidth: 150,
                 px: 3,
                 borderRadius: "14px",
                 color: "#fff",
                 borderColor: "rgba(72, 127, 255, 0.8)",
                 fontWeight: 800,
                 background: "rgba(15, 23, 42, 0.6)",
+                flexShrink: 0,
                 "&:hover": {
                   borderColor: "#5b8cff",
                   background: "rgba(47, 109, 246, 0.16)",
@@ -260,7 +316,7 @@ const Feed = () => {
             >
               Message
             </Button>
-            
+
             <NotificationBell />
           </Stack>
         </Stack>
@@ -522,21 +578,31 @@ const Feed = () => {
                               alignitems: "flex-start",
                             }}
                           >
-                            <Avatar
-                              src={
-                                comment.userId?.avatar
-                                  ? getImageUrl(comment.userId.avatar)
-                                  : ""
-                              }
+                            <Box
                               sx={{
-                                width: 36,
-                                height: 36,
-                                fontSize: 14,
-                                background: "#4f46e5",
+                                display: "flex",
+                                alignitems: "center",
+                                gap: 2,
+                                cursor: "pointer",
                               }}
+                              onClick={() => navigate(`/users/${comment.userId?._id}`)}
                             >
-                              {comment.userId?.name?.charAt(0) || "U"}
-                            </Avatar>
+                              <Avatar
+                                src={
+                                  comment.userId?.avatar
+                                    ? getImageUrl(comment.userId.avatar)
+                                    : ""
+                                }
+                                sx={{
+                                  width: 36,
+                                  height: 36,
+                                  fontSize: 14,
+                                  background: "#4f46e5",
+                                }}
+                              >
+                                {comment.userId?.name?.charAt(0) || "U"}
+                              </Avatar>
+                            </Box>
 
                             <Box sx={{ flex: 1 }}>
                               <Box
@@ -609,12 +675,22 @@ const Feed = () => {
                       alignitems: "center",
                     }}
                   >
-                    <Avatar
-                      sx={{ width: 36, height: 36 }}
-                      src={user?.avatar ? getImageUrl(user.avatar) : ""}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignitems: "center",
+                        gap: 2,
+                        cursor: "pointer",
+                      }}
+                      onClick={() => navigate(`/users/${user?._id}`)}
                     >
-                      {user?.name?.charAt(0) || "U"}
-                    </Avatar>
+                      <Avatar
+                        sx={{ width: 36, height: 36 }}
+                        src={user?.avatar ? getImageUrl(user.avatar) : ""}
+                      >
+                        {user?.name?.charAt(0) || "U"}
+                      </Avatar>
+                    </Box>
 
                     <TextField
                       inputRef={(el) => {
@@ -685,96 +761,13 @@ const Feed = () => {
               top: 24,
             }}
           >
-            <Card
-              sx={{
-                mb: 3,
-                borderRadius: 5,
-                background:
-                  "linear-gradient(145deg, rgba(20,33,61,.98), rgba(15,23,42,.98))",
-                border: "1px solid rgba(255,255,255,.07)",
-                color: "#f8fafc",
-              }}
-            >
-              {/* <CardContent>
-                <Typography sx={{ fontWeight: 900, fontSize: 20, mb: 2 }}>
-                  Notifications
-                </Typography>
+            <SidebarCard title="Upcoming Events" maxListHeight={170}>
+              <UpcomingEvents events={upcomingEvents} />
+            </SidebarCard>
 
-                <NotificationBell />
-              </CardContent> */}
-              <CardContent>
-                <Typography
-                  sx={{
-                    fontWeight: 900,
-                    fontSize: 20,
-                    mb: 2,
-                  }}
-                >
-                  Notifications
-                </Typography>
-
-                {notifications.length === 0 ? (
-                  <Typography
-                    sx={{
-                      color: "#64748b",
-                      fontSize: 14,
-                    }}
-                  >
-                    No notifications yet.
-                  </Typography>
-                ) : (
-                  notifications.map((notification) => (
-                    <Box
-                      key={notification._id}
-                      sx={{
-                        display: "flex",
-                        gap: 1.5,
-                        mb: 2,
-                        pb: 2,
-                        borderBottom: "1px solid rgba(255,255,255,.05)",
-                      }}
-                    >
-                      <Avatar
-                        src={
-                          notification.sender?.avatar
-                            ? getImageUrl(notification.sender.avatar)
-                            : ""
-                        }
-                        sx={{
-                          width: 42,
-                          height: 42,
-                        }}
-                      />
-
-                      <Box>
-                        <Typography
-                          sx={{
-                            color: "#f8fafc",
-                            fontSize: 14,
-                          }}
-                        >
-                          <strong>
-                            {notification.sender?.name}
-                          </strong>{" "}
-                          {notification.message}
-                        </Typography>
-
-                        <Typography
-                          sx={{
-                            color: "#64748b",
-                            fontSize: 12,
-                          }}
-                        >
-                          {new Date(
-                            notification.createdAt
-                          ).toLocaleDateString()}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ))
-                )}
-              </CardContent>
-            </Card>
+            <SidebarCard title="Notifications" maxListHeight={260}>
+              <NotificationList notifications={notifications} />
+            </SidebarCard>
           </Box>
         </Box>
       </Box>
@@ -791,7 +784,7 @@ const Feed = () => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleCloseMenu}
-        PaperProps={{
+        paperprops={{
           sx: {
             background: "#0f172a",
             color: "#f8fafc",

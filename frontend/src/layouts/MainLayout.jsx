@@ -109,9 +109,30 @@ const MainLayout = ({ children }) => {
                 color: "#fff",
             }}
         >
-            <Typography variant="h5" fontWeight="bold" sx={{ mb: 4 }}>
-                Orbit Planner
-            </Typography>
+            <Box
+                sx={{
+                    display: "flex",
+                }}
+            >
+                <Box
+                    component="img"
+                    src="/orbit_planner_logo.png"
+                    alt="Orbit Planner"
+                    sx={{
+                        width: 30,
+                        height: 30,
+                        marginRight: 2,
+                        objectFit: "contain",
+                        filter: `
+                        drop-shadow(0 0 10px rgba(96, 165, 250, 0.4))
+                        drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))
+                        `,
+                    }}
+                />
+                <Typography variant="h5" fontWeight="bold" sx={{ mb: 4 }}>
+                    Orbit Planner
+                </Typography>
+            </Box>
 
             <Typography
                 variant="caption"
@@ -243,9 +264,8 @@ const MainLayout = ({ children }) => {
                             mb: 2,
                             cursor: "pointer",
                         }}
-                        onClick={() => navigate(`/users/${post.userId?._id}`)}
+                        onClick={() => navigate(`/users/${user?._id}`)}
                     >
-
                         <Avatar
                             src={user?.avatar ? getImageUrl(user.avatar) : ""}
                             sx={{

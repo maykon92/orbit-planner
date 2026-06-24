@@ -5,6 +5,7 @@ import {
   getItemById,
   updateItem,
   deleteItem,
+  getUpcomingEvents,
 } from "../controllers/itemController.js";
 
 import { authGuard } from "../middlewares/authMiddleware.js";
@@ -15,6 +16,7 @@ router.use(authGuard);
 
 router.post("/", createItem);
 router.get("/tab/:tabId", getItemsByTab);
+router.get("/upcoming", authGuard, getUpcomingEvents);
 router.get("/:id", getItemById);
 router.put("/:id", updateItem);
 router.delete("/:id", deleteItem);

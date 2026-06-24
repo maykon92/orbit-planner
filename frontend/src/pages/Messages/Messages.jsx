@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -24,6 +24,7 @@ import { getMessages } from "../../services/messageService";
 const Messages = () => {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -232,9 +233,19 @@ const Messages = () => {
                   gap: 2,
                 }}
               >
-                <Avatar src={otherUser?.avatar ? getImageUrl(otherUser.avatar) : ""}>
-                  {otherUser?.name?.charAt(0)}
-                </Avatar>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => navigate(`/users/${otherUser?._id}`)}
+                >
+                  <Avatar src={otherUser?.avatar ? getImageUrl(otherUser.avatar) : ""}>
+                    {otherUser?.name?.charAt(0)}
+                  </Avatar>
+                </Box>
 
                 <Box>
                   <Typography fontWeight="bold" sx={{ color: "#fff" }}>

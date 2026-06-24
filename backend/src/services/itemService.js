@@ -92,3 +92,11 @@ export const deleteUserItem = async (itemId, userId) => {
 
   return item;
 };
+
+export const getUpcomingItems = async (userId) => {
+  return await Item.find({
+    userId,
+  })
+    .sort({ createdAt: -1 })
+    .limit(5);
+};

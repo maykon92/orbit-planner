@@ -135,7 +135,7 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
       onClose={onClose}
       fullWidth
       maxWidth="sm"
-      PaperProps={{
+      paperprops={{
         sx: {
           borderRadius: 4,
           backgroundColor: "#0f172a",
@@ -217,7 +217,7 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
           onChange={(e) => setForm({ ...form, visibility: e.target.value })}
           SelectProps={{
             MenuProps: {
-              PaperProps: {
+              paperprops: {
                 sx: {
                   background: "#0f172a",
                   color: "#f8fafc",

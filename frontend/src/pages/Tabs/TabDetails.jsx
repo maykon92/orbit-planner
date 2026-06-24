@@ -382,7 +382,7 @@ const TabDetails = () => {
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={handleCloseMenu}
-                PaperProps={{
+                paperprops={{
                     sx: {
                     background: "#0f172a",
                     color: "#f8fafc",
@@ -415,7 +415,7 @@ const TabDetails = () => {
                 anchorEl={itemMenuAnchor}
                 open={Boolean(itemMenuAnchor)}
                 onClose={handleCloseItemMenu}
-                PaperProps={{
+                paperprops={{
                     sx: {
                     background: "#0f172a",
                     color: "#f8fafc",

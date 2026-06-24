@@ -81,7 +81,7 @@ const EditItemModal = ({ open, onClose, item, onSave }) => {
 
   const selectProps = {
     MenuProps: {
-      PaperProps: {
+      paperprops: {
         sx: {
           background: "#0f172a",
           color: "#f8fafc",

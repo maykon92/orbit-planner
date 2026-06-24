@@ -5,14 +5,31 @@ import {
   findItemsByTab,
   findUserItemById,
   deleteUserItem,
+  getUpcomingItems,
 } from "../services/itemService.js";
+
+import { createUserPost } from "../services/postService.js";
 
 export const createItem = async (req, res) => {
   try {
-    const { tabId, title, description, status, data, photos, startTime, endTime } = req.body;
+    const {
+      tabId,
+      title,
+      description,
+      status,
+      data,
+      photos,
+      startTime,
+      endTime,
+      shareAsPost,
+      postCaption,
+      postVisibility,
+    } = req.body;
 
     if (!tabId || !title) {
-      return res.status(400).json({ message: "Tab ID and title are required." });
+      return res.status(400).json({
+        message: "Tab ID and title are required.",
+      });
     }
 
     const tab = await Tab.findOne({
@@ -21,7 +38,9 @@ export const createItem = async (req, res) => {
     });
 
     if (!tab) {
-      return res.status(404).json({ message: "Tab not found." });
+      return res.status(404).json({
+        message: "Tab not found.",
+      });
     }
 
     const item = await createUserItem({
@@ -37,7 +56,24 @@ export const createItem = async (req, res) => {
       endTime,
     });
 
-    res.status(201).json(item);
+    let post = null;
+
+    if (shareAsPost) {
+      post = await createUserPost({
+        userId: req.user._id,
+        itemId: item._id,
+        caption:
+          postCaption?.trim() ||
+          `${tab.type}: ${title}`,
+        visibility: postVisibility || "public",
+        photos: photos || [],
+      });
+    }
+
+    res.status(201).json({
+      item,
+      post,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -127,5 +163,19 @@ export const deleteItem = async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUpcomingEvents = async (req, res) => {
+  try {
+    const events = await getUpcomingItems(
+      req.user._id
+    );
+
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };

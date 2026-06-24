@@ -72,3 +72,15 @@ export const toggleFollowUser = async (currentUserId, targetUserId) => {
     followingCount: targetUser.following.length,
   };
 };
+
+export const searchUsers = async (query, currentUserId) => {
+  return await User.find({
+    _id: { $ne: currentUserId },
+    $or: [
+      { name: { $regex: query, $options: "i" } },
+      { email: { $regex: query, $options: "i" } },
+    ],
+  })
+    .select("name email avatar bio")
+    .limit(8);
+};

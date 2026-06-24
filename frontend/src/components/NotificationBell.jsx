@@ -85,7 +85,7 @@ const NotificationBell = () => {
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        PaperProps={{
+        paperprops={{
           sx: {
             width: 340,
             maxHeight: 420,
