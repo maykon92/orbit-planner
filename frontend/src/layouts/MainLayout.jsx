@@ -24,6 +24,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
 import ChatBubbleOutlineIconSharp from "@mui/icons-material/ChatBubbleOutlineSharp";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import { useTheme } from "@mui/material/styles";
 
 import { useEffect, useState } from "react";
@@ -173,6 +174,28 @@ const MainLayout = ({ children }) => {
                     >
                     <DashboardIcon sx={{ mr: 1 }} />
                     <ListItemText primary="Dashboard" />
+                </ListItemButton>
+
+                {/* FINANCE PLANNER */}
+
+                <ListItemButton
+                    onClick={() => {
+                        navigate("/finance");
+                        if (isMobile) setOpen(false);
+                    }}
+                    sx={{
+                        borderRadius: 2,
+                        mb: 1,
+                        color: location.pathname === "/finance" ? "#fff" : "#cbd5e1",
+                        background:
+                        location.pathname === "/" ? "#1e293b" : "transparent",
+                        "&:hover": {
+                            background: "#111827",
+                        },
+                    }}
+                    >
+                    <AttachMoneyIcon sx={{ mr: 1 }} />
+                    <ListItemText primary="Finance Planner" />
                 </ListItemButton>
 
                 {/* Feed */}

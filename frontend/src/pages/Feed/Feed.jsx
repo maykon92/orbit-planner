@@ -243,20 +243,20 @@ const Feed = () => {
                 gap: 2,
               }}
             >
-            <Box
-              component="img"
-              src="/orbit_planner_logo.png"
-              alt="Orbit Planner"
-              sx={{
-                width: 60,
-                height: 60,
-                objectFit: "contain",
-                filter: `
-                  drop-shadow(0 0 10px rgba(96, 165, 250, 0.4))
-                  drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))
-                `,
-              }}
-            />
+              <Box
+                component="img"
+                src="/orbit_planner_logo.png"
+                alt="Orbit Planner"
+                sx={{
+                  width: 60,
+                  height: 60,
+                  objectFit: "contain",
+                  filter: `
+                    drop-shadow(0 0 10px rgba(96, 165, 250, 0.4))
+                    drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))
+                  `,
+                }}
+              />
               <Typography
                 variant="h1"
                 sx={{

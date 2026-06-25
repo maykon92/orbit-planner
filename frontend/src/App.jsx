@@ -9,6 +9,7 @@ import Feed from "./pages/Feed/Feed";
 import ProfileSettings from "./pages/Profile/ProfileSettings";
 import PublicProfile from "./pages/Profile/PublicProfile";
 import Messages from "./pages/Messages/Messages";
+import FinancePlanner from "./pages/Finance/Finance";
 
 function App() {
   return (
@@ -31,6 +32,15 @@ function App() {
           element={
             <ProtectedRoute>
               <LifeDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/finance"
+          element={
+            <ProtectedRoute>
+              <FinancePlanner />
             </ProtectedRoute>
           }
         />
