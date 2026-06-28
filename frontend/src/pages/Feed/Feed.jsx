@@ -230,8 +230,8 @@ const Feed = () => {
       >
         <Stack
           direction={{ xs: "column", md: "row" }}
-          justifycontent="space-between"
-          alignitems={{ xs: "flex-start", md: "center" }}
+          justifyContent="space-between"
+          alignItems={{ xs: "flex-start", md: "center" }}
           spacing={3}
           sx={{ mb: 4 }}
         >
@@ -285,9 +285,9 @@ const Feed = () => {
           <Stack
             direction="row"
             spacing={2}
-            alignitems="left"
             sx={{
               flexShrink: 0,
+              alignItems: "left"
             }}
           >
             <Box sx={{ width: 300 }}>
@@ -333,7 +333,7 @@ const Feed = () => {
             boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
           }}
         >
-          <Stack direction="row" spacing={2} alignitems="center">
+          <Stack direction="row" spacing={2} alignItems="center">
             <Avatar
               src={user?.avatar ? getImageUrl(user.avatar) : ""}
               sx={{ width: 50, height: 50 }}
@@ -380,7 +380,7 @@ const Feed = () => {
               lg: "minmax(0, 1fr) 320px",
             },
             gap: 3,
-            alignitems: "flex-start",
+            alignItems: "flex-start",
           }}
         >
           <Box>
@@ -401,7 +401,7 @@ const Feed = () => {
                   <Box
                     sx={{
                       display: "flex",
-                      alignitems: "flex-start",
+                      alignItems: "flex-start",
                       gap: 2,
                       mb: 2,
                     }}
@@ -409,7 +409,7 @@ const Feed = () => {
                     <Box
                       sx={{
                         display: "flex",
-                        alignitems: "center",
+                        alignItems: "center",
                         gap: 2,
                         cursor: "pointer",
                       }}
@@ -499,7 +499,7 @@ const Feed = () => {
                   <Box
                     sx={{
                       display: "flex",
-                      alignitems: "center",
+                      alignItems: "center",
                       gap: 2,
                       borderTop: "1px solid rgba(255,255,255,.06)",
                       borderBottom: "1px solid rgba(255,255,255,.06)",
@@ -575,13 +575,13 @@ const Feed = () => {
                               display: "flex",
                               gap: 1.5,
                               mb: 2,
-                              alignitems: "flex-start",
+                              alignItems: "flex-start",
                             }}
                           >
                             <Box
                               sx={{
                                 display: "flex",
-                                alignitems: "center",
+                                alignItems: "center",
                                 gap: 2,
                                 cursor: "pointer",
                               }}
@@ -672,13 +672,13 @@ const Feed = () => {
                       display: "flex",
                       gap: 1,
                       mt: 2,
-                      alignitems: "center",
+                      alignItems: "center",
                     }}
                   >
                     <Box
                       sx={{
                         display: "flex",
-                        alignitems: "center",
+                        alignItems: "center",
                         gap: 2,
                         cursor: "pointer",
                       }}

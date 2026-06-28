@@ -20,6 +20,8 @@ import conversationRoutes from "./routes/conversationRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import financeRoutes from "./routes/financeRoutes.js";
+import financeInvitationRoutes from "./routes/financeInvitationRoutes.js";
+import financeWorkspaceRoutes from "./routes/financeWorkspaceRoutes.js";
 
 import { authGuard } from "./middlewares/authMiddleware.js";
 import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
@@ -135,6 +137,8 @@ app.use("/api/conversations", conversationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/finance", financeRoutes);
+app.use("/api/finance/invitations", financeInvitationRoutes);
+app.use("/api/finance/workspaces", financeWorkspaceRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

@@ -111,6 +111,7 @@ const MainLayout = ({ children }) => {
             }}
         >
             <Box
+                alignitems="center"
                 sx={{
                     display: "flex",
                 }}

@@ -8,6 +8,18 @@ const expenseSchema = new mongoose.Schema(
       required: true,
     },
 
+    workspaceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "FinanceWorkspace",
+      required: true,
+    },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     title: {
       type: String,
       required: true,
@@ -31,6 +43,7 @@ const expenseSchema = new mongoose.Schema(
         "fun",
         "education",
         "visa",
+        "phone",
         "other",
       ],
       default: "other",

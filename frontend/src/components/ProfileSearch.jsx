@@ -14,34 +14,13 @@ import { useNavigate } from "react-router-dom";
 import { searchProfiles } from "../services/userService";
 import { getImageUrl } from "../utils/getImageUrl";
 
+import useUserSearch from "../hooks/useUserSearch";
+
 const ProfileSearch = () => {
   const navigate = useNavigate();
+  const {query, users, handleSearch, clearSearch,} = useUserSearch();
 
-  const [query, setQuery] = useState("");
-  const [users, setUsers] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
-
-  const handleSearch = async (value) => {
-    setQuery(value);
-
-    if (value.trim().length < 2) {
-      setUsers([]);
-      return;
-    }
-
-    try {
-      const data = await searchProfiles(value);
-      setUsers(data);
-    } catch (error) {
-      console.error("Error searching profiles:", error);
-      setUsers([]);
-    }
-  };
-
-  const handleClear = () => {
-    setQuery("");
-    setUsers([]);
-  };
 
   const handleOpenProfile = (userId) => {
     setQuery("");
@@ -94,7 +73,7 @@ const ProfileSearch = () => {
         />
 
         {query && (
-          <IconButton size="small" onClick={handleClear} sx={{ color: "#8fa0bf" }}>
+          <IconButton size="small" onClick={clearSearch} sx={{ color: "#8fa0bf" }}>
             <CloseIcon sx={{ fontSize: 18 }} />
           </IconButton>
         )}

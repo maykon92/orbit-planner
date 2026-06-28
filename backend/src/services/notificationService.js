@@ -5,6 +5,19 @@ export const getUserNotifications = async (userId) => {
     .populate("sender", "name avatar email")
     .populate("post", "caption photos")
     .populate("conversation")
+    .populate({
+      path: "financeInvitation",
+      populate: [
+        {
+          path: "workspace",
+          select: "name type",
+        },
+        {
+          path: "sender",
+          select: "name avatar email",
+        },
+      ],
+    })
     .sort({ createdAt: -1 });
 };
 

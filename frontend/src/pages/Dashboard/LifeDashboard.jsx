@@ -102,13 +102,15 @@ const LifeDashboard = () => {
       >
         <Stack
           direction={{ xs: "column", md: "row" }}
-          justifyContent="space-between"
-          alignItems={{ xs: "flex-start", md: "center" }}
           spacing={3}
-          sx={{ mb: 4 }}
+          sx={{ 
+            mb: 4,
+            justifyContent: "space-between",
+            alignItems:{ xs: "flex-start", md: "center" }
+          }}
         >
           <Box>
-            <Stack direction="row" alignItems="center" spacing={2}>
+            <Stack direction="row" sx={{ alignItems: "center" }} spacing={2}>
               <Box
                 component="img"
                 src="/orbit_planner_logo.png"

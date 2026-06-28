@@ -8,6 +8,18 @@ const savingGoalSchema = new mongoose.Schema(
       required: true,
     },
 
+    workspaceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "FinanceWorkspace",
+      required: true,
+    },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     title: {
       type: String,
       required: true,

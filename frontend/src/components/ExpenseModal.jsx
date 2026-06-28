@@ -7,74 +7,98 @@ import {
   TextField,
   MenuItem,
 } from "@mui/material";
-import { useState } from "react";
-import { createExpense } from "../services/financeService";
+import { useEffect, useState } from "react";
+import { createExpense, updateExpense } from "../services/financeService";
 
-const AddExpenseModal = ({ open, onClose, onCreated }) => {
-  const [form, setForm] = useState({
-    title: "",
-    amount: "",
-    category: "other",
-    date: new Date().toISOString().split("T")[0],
-    paymentMethod: "card",
-    notes: "",
-  });
+const getToday = () => new Date().toISOString().split("T")[0];
+
+const formatDateForInput = (date) => {
+  if (!date) return getToday();
+  return new Date(date).toISOString().split("T")[0];
+};
+
+const getInitialForm = () => ({
+  title: "",
+  amount: "",
+  category: "other",
+  date: getToday(),
+  paymentMethod: "card",
+  notes: "",
+});
+
+const ExpenseModal = ({ open, onClose, onSaved, expense = null, workspaceId }) => {
+  const isEditing = !!expense;
+  const [form, setForm] = useState(getInitialForm());
+
+  useEffect(() => {
+    if (expense) {
+      setForm({
+        title: expense.title || "",
+        amount: expense.amount || "",
+        category: expense.category || "other",
+        date: formatDateForInput(expense.date),
+        paymentMethod: expense.paymentMethod || "card",
+        notes: expense.notes || "",
+      });
+    } else {
+      setForm(getInitialForm());
+    }
+  }, [expense, open]);
 
   const handleSubmit = async () => {
-    const expense = await createExpense({
-      ...form,
-      amount: Number(form.amount),
-    });
+    if (isEditing) {
+      await updateExpense(expense._id, {
+        workspaceId,
+        ...form,
+        amount: Number(form.amount),
+      });
+    } else {
+      await createExpense({
+        workspaceId,
+        ...form,
+        amount: Number(form.amount),
+      });
+    }
 
-    onCreated(expense);
+    await onSaved?.();
     onClose();
-
-    setForm({
-      title: "",
-      amount: "",
-      category: "other",
-      date: new Date().toISOString().split("T")[0],
-      paymentMethod: "card",
-      notes: "",
-    });
+    setForm(getInitialForm());
   };
 
   const fieldSx = {
     mb: 2,
     input: { color: "#f8fafc" },
     textarea: { color: "#f8fafc" },
-    "& .MuiInputLabel-root": {
-      color: "#94a3b8",
-    },
-    "& .MuiInputLabel-root.Mui-focused": {
-      color: "#60a5fa",
-    },
+    "& .MuiInputLabel-root": { color: "#94a3b8" },
+    "& .MuiInputLabel-root.Mui-focused": { color: "#60a5fa" },
     "& .MuiOutlinedInput-root": {
       background: "#111827",
       borderRadius: 3,
       color: "#f8fafc",
-      "& fieldset": {
-        borderColor: "#1f2937",
-      },
-      "&:hover fieldset": {
-        borderColor: "#334155",
-      },
-      "&.Mui-focused fieldset": {
-        borderColor: "#2563eb",
-      },
+      "& fieldset": { borderColor: "#1f2937" },
+      "&:hover fieldset": { borderColor: "#334155" },
+      "&.Mui-focused fieldset": { borderColor: "#2563eb" },
     },
-    "& .MuiSelect-icon": {
-      color: "#94a3b8",
+    "& .MuiSelect-icon": { color: "#94a3b8" },
+  };
+
+  const menuProps = {
+    PaperProps: {
+      sx: {
+        background: "#0f172a",
+        color: "#f8fafc",
+        border: "1px solid #1f2937",
+      },
     },
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      fullWidth 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
       maxWidth="sm"
-      paperprops={{
+      PaperProps={{
         sx: {
           backgroundColor: "#0f172a",
           color: "#f8fafc",
@@ -96,17 +120,15 @@ const AddExpenseModal = ({ open, onClose, onCreated }) => {
           py: 2,
         }}
       >
-        Add Expense
+        {isEditing ? "Edit Expense" : "Add Expense"}
       </DialogTitle>
 
       <DialogContent
         sx={{
           backgroundColor: "#0f172a",
           color: "#f8fafc",
-          borderBottom: "1px solid #1f2937",
-          fontWeight: 800,
           px: 3,
-          py: 2,
+          py: "24px !important",
         }}
       >
         <TextField
@@ -124,17 +146,6 @@ const AddExpenseModal = ({ open, onClose, onCreated }) => {
           type="number"
           margin="normal"
           value={form.amount}
-          selectprops={{
-            MenuProps: {
-              paperprops: {
-                sx: {
-                  background: "#0f172a",
-                  color: "#f8fafc",
-                  border: "1px solid #1f2937",
-                },
-              },
-            },
-          }}
           sx={fieldSx}
           onChange={(e) => setForm({ ...form, amount: e.target.value })}
         />
@@ -145,17 +156,7 @@ const AddExpenseModal = ({ open, onClose, onCreated }) => {
           label="Category"
           margin="normal"
           value={form.category}
-          selectprops={{
-            MenuProps: {
-              paperprops: {
-                sx: {
-                  background: "#0f172a",
-                  color: "#f8fafc",
-                  border: "1px solid #1f2937",
-                },
-              },
-            },
-          }}
+          SelectProps={{ MenuProps: menuProps }}
           sx={fieldSx}
           onChange={(e) => setForm({ ...form, category: e.target.value })}
         >
@@ -168,6 +169,7 @@ const AddExpenseModal = ({ open, onClose, onCreated }) => {
           <MenuItem value="fun">Fun</MenuItem>
           <MenuItem value="education">Education</MenuItem>
           <MenuItem value="visa">Visa</MenuItem>
+          <MenuItem value="phone">Phone</MenuItem>
           <MenuItem value="other">Other</MenuItem>
         </TextField>
 
@@ -188,21 +190,9 @@ const AddExpenseModal = ({ open, onClose, onCreated }) => {
           label="Payment Method"
           margin="normal"
           value={form.paymentMethod}
-          selectprops={{
-            MenuProps: {
-              paperprops: {
-                sx: {
-                  background: "#0f172a",
-                  color: "#f8fafc",
-                  border: "1px solid #1f2937",
-                },
-              },
-            },
-          }}
+          SelectProps={{ MenuProps: menuProps }}
           sx={fieldSx}
-          onChange={(e) =>
-            setForm({ ...form, paymentMethod: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
         >
           <MenuItem value="card">Card</MenuItem>
           <MenuItem value="cash">Cash</MenuItem>
@@ -226,17 +216,19 @@ const AddExpenseModal = ({ open, onClose, onCreated }) => {
         sx={{
           backgroundColor: "#0f172a",
           borderTop: "1px solid #1f2937",
-          color: "#f8fafc",
           p: 3,
         }}
       >
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose} sx={{ color: "#94a3b8" }}>
+          Cancel
+        </Button>
+
         <Button variant="contained" onClick={handleSubmit}>
-          Save
+          {isEditing ? "Update" : "Save"}
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default AddExpenseModal;
+export default ExpenseModal;

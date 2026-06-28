@@ -14,6 +14,7 @@ import {
   getNotifications,
   markAllNotificationsAsRead,
 } from "../services/notificationService";
+import FinanceInvitationNotification from "./finance/FinanceInvitationNotification";
 
 const NotificationBell = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -85,13 +86,29 @@ const NotificationBell = () => {
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        paperprops={{
-          sx: {
-            width: 340,
-            maxHeight: 420,
-            bgcolor: "#1e1e2f",
-            color: "#fff",
-            borderRadius: 2,
+        slotProps={{
+          paper: {
+            sx: {
+              width: 380,
+              maxHeight: 560,
+              overflowY: "auto",
+              borderRadius: 4,
+              background:
+                "linear-gradient(145deg, rgba(20,33,61,.98), rgba(15,23,42,.98))",
+              color: "#f8fafc",
+              border: "1px solid rgba(255,255,255,.08)",
+              boxShadow: "0 30px 80px rgba(0,0,0,.65)",
+
+              "& .MuiMenuItem-root": {
+                color: "#f8fafc",
+                alignItems: "flex-start",
+                whiteSpace: "normal",
+                borderRadius: 3,
+                mx: 1,
+                my: 0.5,
+                p: 1.5,
+              },
+            },
           },
         }}
       >
@@ -106,29 +123,35 @@ const NotificationBell = () => {
             </Typography>
           </MenuItem>
         ) : (
-          notifications.map((notification) => (
-            <MenuItem
-              key={notification._id}
-              sx={{
-                alignItems: "flex-start",
-                whiteSpace: "normal",
-                bgcolor: notification.isRead ? "transparent" : "#2a2a40",
-              }}
-            >
-              <Box>
-                <Typography variant="body2">
-                  <strong>
-                    {notification.sender?.name || "Someone"}
-                  </strong>{" "}
-                  {notification.message}
-                </Typography>
+          notifications.map((notification) =>
+            notification.type === "finance_invitation" ? (
+              <FinanceInvitationNotification
+                key={notification._id}
+                notification={notification}
+                onUpdated={loadNotifications}
+              />
+            ) : (
+              <MenuItem
+                key={notification._id}
+                sx={{
+                  alignItems: "flex-start",
+                  whiteSpace: "normal",
+                  bgcolor: notification.isRead ? "transparent" : "#2a2a40",
+                }}
+              >
+                <Box>
+                  <Typography variant="body2">
+                    <strong>{notification.sender?.name || "Someone"}</strong>{" "}
+                    {notification.message}
+                  </Typography>
 
-                <Typography variant="caption" color="gray">
-                  {new Date(notification.createdAt).toLocaleString()}
-                </Typography>
-              </Box>
-            </MenuItem>
-          ))
+                  <Typography variant="caption" color="gray">
+                    {new Date(notification.createdAt).toLocaleString()}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            )
+          )
         )}
 
         {notifications.length > 0 && (
@@ -138,6 +161,7 @@ const NotificationBell = () => {
             </Button>
           </Box>
         )}
+
       </Menu>
     </Box>
   );

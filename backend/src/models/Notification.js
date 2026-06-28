@@ -15,7 +15,16 @@ const notificationSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["comment", "reply", "like", "follow", "task", "message"],
+      enum: [
+        "comment", 
+        "reply", 
+        "like", 
+        "follow", 
+        "task", 
+        "message",
+        "finance_invitation",
+        "finance_invitation_accepted",
+      ],
       required: true,
     },
 
@@ -41,6 +50,11 @@ const notificationSchema = new mongoose.Schema(
     conversation: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Conversation",
+    },
+
+    financeInvitation: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "FinanceInvitation",
     },
   },
   { timestamps: true }

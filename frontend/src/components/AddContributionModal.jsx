@@ -9,7 +9,13 @@ import {
 import { useState } from "react";
 import { createContribution } from "../services/financeService";
 
-const AddContributionModal = ({ open, onClose, goal, onCreated }) => {
+const AddContributionModal = ({
+  open,
+  onClose,
+  goal,
+  workspaceId,
+  onCreated,
+}) => {
   const [form, setForm] = useState({
     amount: "",
     date: new Date().toISOString().split("T")[0],
@@ -20,6 +26,7 @@ const AddContributionModal = ({ open, onClose, goal, onCreated }) => {
     if (!goal?._id) return;
 
     const contribution = await createContribution(goal._id, {
+      workspaceId,
       ...form,
       amount: Number(form.amount),
     });
