@@ -13,7 +13,7 @@ const MemberCard = ({ member }) => {
         p: 2,
       }}
     >
-      <Stack direction="row" spacing={2} alignItems="center">
+      <Stack direction="row" spacing={2} sx={{alignItems:"center"}}>
         <Avatar
           src={member.avatar ? getImageUrl(member.avatar) : ""}
           sx={{ width: 64, height: 64 }}

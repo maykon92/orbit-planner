@@ -64,9 +64,9 @@ const ManageWorkspaceModal = ({ open, onClose, workspace, onUpdated }) => {
     >
       {loading ? (
         <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
+        sx={{
+            alignItems:"center",
+            justifyContent:"center",
             minHeight: 420,
             background:
               "linear-gradient(145deg, rgba(20,33,61,.98), rgba(15,23,42,.98))",

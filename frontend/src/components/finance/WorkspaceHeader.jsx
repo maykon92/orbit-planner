@@ -22,12 +22,14 @@ const WorkspaceHeader = ({ workspace }) => {
     <Stack spacing={2.5}>
       <Stack
         direction="row"
-        justifyContent="space-between"
-        alignItems="flex-start"
         spacing={2}
+        sx={{
+          justifyContent:"space-between",
+          alignItems:"flex-start",
+        }}
       >
         <Box>
-          <Stack direction="row" alignItems="center" spacing={1.5}>
+          <Stack direction="row" sx={{alignItems:"center"}} spacing={1.5}>
             <Typography
               sx={{
                 fontSize: 24,

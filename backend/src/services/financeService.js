@@ -4,6 +4,7 @@ import SavingContribution from "../models/SavingContribution.js";
 import FinanceWorkspace from "../models/FinanceWorkspace.js";
 import User from "../models/User.js";
 import MonthlyBudget from "../models/MonthlyBudget.js";
+import Income from "../models/Income.js";
 
 const userHasWorkspaceAccess = async ({ workspaceId, userId }) => {
   const workspace = await FinanceWorkspace.findOne({
@@ -364,4 +365,101 @@ export const getWorkspaceMonthlyBudgets = async ({
   })
     .populate("createdBy", "name avatar email")
     .sort({ category: 1 });
+};
+
+export const createUserIncome = async ({
+  userId,
+  workspaceId,
+  source,
+  amount,
+  period,
+  startDate,
+  endDate,
+  notes,
+}) => {
+  const hasAccess = await userHasWorkspaceAccess({
+    userId,
+    workspaceId,
+  });
+
+  if (!hasAccess) {
+    throw new Error("Workspace access denied.");
+  }
+
+  return await Income.create({
+    workspaceId,
+    createdBy: userId,
+    source,
+    amount,
+    period,
+    startDate,
+    endDate,
+    notes,
+  });
+};
+
+export const getWorkspaceIncomes = async ({
+  userId,
+  workspaceId,
+}) => {
+  const hasAccess = await userHasWorkspaceAccess({
+    userId,
+    workspaceId,
+  });
+
+  if (!hasAccess) {
+    throw new Error("Workspace access denied.");
+  }
+
+  return await Income.find({ workspaceId })
+    .populate("createdBy", "name avatar email")
+    .sort({ startDate: -1 });
+};
+
+export const updateUserIncome = async ({
+  userId,
+  workspaceId,
+  incomeId,
+  incomeData,
+}) => {
+  const hasAccess = await userHasWorkspaceAccess({
+    userId,
+    workspaceId,
+  });
+
+  if (!hasAccess) {
+    throw new Error("Workspace access denied.");
+  }
+
+  return await Income.findOneAndUpdate(
+    {
+      _id: incomeId,
+      workspaceId,
+    },
+    {
+      ...incomeData,
+      workspaceId,
+    },
+    { new: true }
+  ).populate("createdBy", "name avatar email");
+};
+
+export const deleteUserIncome = async ({
+  userId,
+  workspaceId,
+  incomeId,
+}) => {
+  const hasAccess = await userHasWorkspaceAccess({
+    userId,
+    workspaceId,
+  });
+
+  if (!hasAccess) {
+    throw new Error("Workspace access denied.");
+  }
+
+  return await Income.findOneAndDelete({
+    _id: incomeId,
+    workspaceId,
+  });
 };

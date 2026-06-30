@@ -55,7 +55,7 @@ const InviteMemberSection = ({ workspace, onUpdated }) => {
       />
 
       {loading && (
-        <Stack direction="row" justifyContent="center" py={3}>
+        <Stack direction="row" sx={{justifyContent:"center"}} py={3}>
           <CircularProgress />
         </Stack>
       )}

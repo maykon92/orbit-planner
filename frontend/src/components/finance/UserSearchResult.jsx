@@ -25,7 +25,7 @@ const UserSearchResult = ({ user, workspace, clearSearch, onUpdated }) => {
       }}
     >
       <Stack direction="row" sx={{ justifyContent: "space-between", position: "relative" }}>
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack direction="row" spacing={2} sx={{alignItems:"center"}}>
           <Avatar
             src={user.avatar ? getImageUrl(user.avatar) : ""}
             sx={{ width: 56, height: 56 }}

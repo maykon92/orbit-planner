@@ -100,3 +100,30 @@ export const upsertMonthlyBudget = async (budgetData) => {
   const { data } = await api.post("/finance/budgets", budgetData);
   return data;
 };
+
+export const getIncomes = async (workspaceId) => {
+  const { data } = await api.get("/finance/incomes", {
+    params: { workspaceId },
+  });
+
+  return data;
+};
+
+export const createIncome = async (incomeData) => {
+  const { data } = await api.post("/finance/incomes", incomeData);
+  return data;
+};
+
+export const updateIncome = async (incomeId, incomeData) => {
+  const { data } = await api.put(`/finance/incomes/${incomeId}`, incomeData);
+
+  return data;
+};
+
+export const deleteIncome = async (incomeId, workspaceId) => {
+  const { data } = await api.delete(`/finance/incomes/${incomeId}`, {
+    params: { workspaceId },
+  });
+
+  return data;
+};

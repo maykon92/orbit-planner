@@ -16,6 +16,10 @@ import {
   deleteSavingGoal,
   upsertMonthlyBudget,
   getMonthlyBudgets,
+  createIncome,
+  getIncomes,
+  updateIncome,
+  deleteIncome,
 } from "../controllers/financeController.js";
 
 const router = express.Router();
@@ -37,7 +41,10 @@ router.put("/goals/:goalId", updateSavingGoal);
 router.delete("/goals/:goalId", deleteSavingGoal);
 router.get("/budgets", getMonthlyBudgets);
 router.post("/budgets", upsertMonthlyBudget);
-
+router.get("/incomes", getIncomes);
+router.post("/incomes", createIncome);
+router.put("/incomes/:incomeId", updateIncome);
+router.delete("/incomes/:incomeId", deleteIncome);
 router.post(
   "/workspaces/:workspaceId/invite",
   inviteWorkspaceMember

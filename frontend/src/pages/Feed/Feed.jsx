@@ -230,10 +230,12 @@ const Feed = () => {
       >
         <Stack
           direction={{ xs: "column", md: "row" }}
-          justifyContent="space-between"
-          alignItems={{ xs: "flex-start", md: "center" }}
           spacing={3}
-          sx={{ mb: 4 }}
+          sx={{ 
+            mb: 4,
+            justifyContent:"space-between",
+            alignItems: { xs: "flex-start", md: "center" },
+           }}
         >
           <Box>
             <Box
@@ -333,7 +335,7 @@ const Feed = () => {
             boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
           }}
         >
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={2} sx={{alignItems:"center"}}>
             <Avatar
               src={user?.avatar ? getImageUrl(user.avatar) : ""}
               sx={{ width: 50, height: 50 }}

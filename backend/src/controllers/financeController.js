@@ -14,6 +14,10 @@ import {
   deleteUserSavingGoal,
   createOrUpdateMonthlyBudget,
   getWorkspaceMonthlyBudgets,
+  createUserIncome,
+  getWorkspaceIncomes,
+  updateUserIncome,
+  deleteUserIncome,
 } from "../services/financeService.js";
 
 const resolveWorkspaceId = async (req) => {
@@ -297,6 +301,89 @@ export const getMonthlyBudgets = async (req, res) => {
     });
 
     res.json(budgets);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const createIncome = async (req, res) => {
+  try {
+    const workspaceId = await resolveWorkspaceId(req);
+
+    const income = await createUserIncome({
+      userId: req.user._id,
+      workspaceId,
+      ...req.body,
+      amount: Number(req.body.amount),
+    });
+
+    res.status(201).json(income);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getIncomes = async (req, res) => {
+  try {
+    const workspaceId = await resolveWorkspaceId(req);
+
+    const incomes = await getWorkspaceIncomes({
+      userId: req.user._id,
+      workspaceId,
+    });
+
+    res.json(incomes);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateIncome = async (req, res) => {
+  try {
+    const workspaceId = await resolveWorkspaceId(req);
+
+    const income = await updateUserIncome({
+      userId: req.user._id,
+      workspaceId,
+      incomeId: req.params.incomeId,
+      incomeData: {
+        ...req.body,
+        amount: Number(req.body.amount),
+      },
+    });
+
+    if (!income) {
+      return res.status(404).json({
+        message: "Income not found.",
+      });
+    }
+
+    res.json(income);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteIncome = async (req, res) => {
+  try {
+    const workspaceId = await resolveWorkspaceId(req);
+
+    const deletedIncome = await deleteUserIncome({
+      userId: req.user._id,
+      workspaceId,
+      incomeId: req.params.incomeId,
+    });
+
+    if (!deletedIncome) {
+      return res.status(404).json({
+        message: "Income not found.",
+      });
+    }
+
+    res.json({
+      message: "Income deleted successfully.",
+      incomeId: deletedIncome._id,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

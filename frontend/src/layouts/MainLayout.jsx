@@ -36,6 +36,7 @@ import CreateTabModal from "../components/CreateTabModal";
 import { getImageUrl } from "../utils/getImageUrl";
 import AIChatButton from "../components/AI/AIChatButton";
 import AIChatModal from "../components/AI/AIChatModal";
+import NotificationList from "../components/NotificationList";
 
 const drawerWidth = 270;
 
@@ -111,9 +112,9 @@ const MainLayout = ({ children }) => {
             }}
         >
             <Box
-                alignitems="center"
                 sx={{
                     display: "flex",
+                    alignitems:"center",
                 }}
             >
                 <Box
@@ -278,6 +279,7 @@ const MainLayout = ({ children }) => {
 
             <Divider sx={{ borderColor: "#1f2937", my: 3 }} />
 
+
             <Box sx={{ mt: "auto" }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
                     <Box
@@ -400,13 +402,13 @@ const MainLayout = ({ children }) => {
                 component="main"
                 sx={{
                     flexGrow: 1,
-    p: { xs: 2, sm: 3 }, // Padding responsivo
-    mt: isMobile ? 8 : 0,
-    minWidth: 0,
-    overflowX: "hidden",
-    width: "100%",
-    maxWidth: "100vw", // Limita a largura máxima
-    boxSizing: "border-box",
+                    p: { xs: 2, sm: 3 }, // Padding responsivo
+                    mt: isMobile ? 8 : 0,
+                    minWidth: 0,
+                    overflowX: "hidden",
+                    width: "100%",
+                    maxWidth: "100vw", // Limita a largura máxima
+                    boxSizing: "border-box",
                 }}
             >
                 {children}
