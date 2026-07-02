@@ -309,6 +309,9 @@ export const createOrUpdateMonthlyBudget = async ({
   workspaceId,
   category,
   amount,
+  periodType = "monthly",
+  weekStart,
+  weekEnd,
   month,
   year,
 }) => {
@@ -321,19 +324,46 @@ export const createOrUpdateMonthlyBudget = async ({
     throw new Error("Workspace access denied.");
   }
 
+  const normalizedWeekStart =
+    periodType === "weekly" && weekStart
+      ? new Date(weekStart)
+      : undefined;
+
+  const normalizedWeekEnd =
+    periodType === "weekly" && weekEnd
+      ? new Date(weekEnd)
+      : undefined;
+
+  if (normalizedWeekStart) normalizedWeekStart.setHours(0, 0, 0, 0);
+  if (normalizedWeekEnd) normalizedWeekEnd.setHours(23, 59, 59, 999);
+
+  const query = {
+    workspaceId,
+    category,
+    periodType,
+    year,
+  };
+
+  if (periodType === "weekly") {
+    query.weekStart = normalizedWeekStart;
+    query.weekEnd = normalizedWeekEnd;
+  }
+
+  if (periodType === "monthly") {
+    query.month = month;
+  }
+
   return await MonthlyBudget.findOneAndUpdate(
-    {
-      workspaceId,
-      category,
-      month,
-      year,
-    },
+    query,
     {
       workspaceId,
       createdBy: userId,
       category,
       amount,
-      month,
+      periodType,
+      weekStart: periodType === "weekly" ? normalizedWeekStart : undefined,
+      weekEnd: periodType === "weekly" ? normalizedWeekEnd : undefined,
+      month: periodType === "monthly" ? month : undefined,
       year,
     },
     {
@@ -346,8 +376,11 @@ export const createOrUpdateMonthlyBudget = async ({
 export const getWorkspaceMonthlyBudgets = async ({
   userId,
   workspaceId,
+  periodType,
   month,
   year,
+  weekStart,
+  weekEnd,
 }) => {
   const hasAccess = await userHasWorkspaceAccess({
     userId,
@@ -358,13 +391,35 @@ export const getWorkspaceMonthlyBudgets = async ({
     throw new Error("Workspace access denied.");
   }
 
-  return await MonthlyBudget.find({
+  const query = {
     workspaceId,
-    month,
-    year,
-  })
+  };
+
+  if (periodType) {
+    query.periodType = periodType;
+  }
+
+  if (periodType === "monthly") {
+    query.year = Number(year);
+    query.month = Number(month);
+  }
+
+  if (periodType === "weekly") {
+    const normalizedWeekStart = new Date(weekStart);
+    const normalizedWeekEnd = new Date(weekEnd);
+
+    normalizedWeekStart.setHours(0, 0, 0, 0);
+    normalizedWeekEnd.setHours(23, 59, 59, 999);
+
+    query.weekStart = { $lte: normalizedWeekEnd };
+    query.weekEnd = { $gte: normalizedWeekStart };
+  }
+
+  console.log("FINAL BUDGET QUERY:", query);
+
+  return await MonthlyBudget.find(query)
     .populate("createdBy", "name avatar email")
-    .sort({ category: 1 });
+    .sort({ periodType: 1, category: 1 });
 };
 
 export const createUserIncome = async ({

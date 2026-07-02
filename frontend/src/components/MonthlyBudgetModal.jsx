@@ -6,33 +6,63 @@ import {
   Button,
   TextField,
   MenuItem,
+  Stack,
 } from "@mui/material";
 import { useState } from "react";
 import { upsertMonthlyBudget } from "../services/financeService";
 
-const MonthlyBudgetModal = ({
-  open,
-  onClose,
-  onSaved,
-  workspaceId,
-}) => {
+const getToday = () => new Date().toISOString().split("T")[0];
+
+const getWeekRange = () => {
   const today = new Date();
+  const day = today.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diffToMonday);
+
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  return {
+    weekStart: monday.toISOString().split("T")[0],
+    weekEnd: sunday.toISOString().split("T")[0],
+  };
+};
+
+const MonthlyBudgetModal = ({ open, onClose, onSaved, workspaceId }) => {
+  const today = new Date();
+  const currentWeek = getWeekRange();
 
   const [form, setForm] = useState({
     category: "food",
     amount: "",
+    periodType: "monthly",
     month: today.getMonth() + 1,
     year: today.getFullYear(),
+    weekStart: currentWeek.weekStart,
+    weekEnd: currentWeek.weekEnd,
   });
 
   const handleSubmit = async () => {
-    await upsertMonthlyBudget({
+    const payload = {
       workspaceId,
-      ...form,
+      category: form.category,
       amount: Number(form.amount),
-      month: Number(form.month),
+      periodType: form.periodType,
       year: Number(form.year),
-    });
+    };
+
+    if (form.periodType === "monthly") {
+      payload.month = Number(form.month);
+    }
+
+    if (form.periodType === "weekly") {
+      payload.weekStart = form.weekStart;
+      payload.weekEnd = form.weekEnd;
+    }
+
+    await upsertMonthlyBudget(payload);
 
     await onSaved?.();
     onClose();
@@ -40,8 +70,11 @@ const MonthlyBudgetModal = ({
     setForm({
       category: "food",
       amount: "",
+      periodType: "monthly",
       month: today.getMonth() + 1,
       year: today.getFullYear(),
+      weekStart: currentWeek.weekStart,
+      weekEnd: currentWeek.weekEnd,
     });
   };
 
@@ -95,13 +128,13 @@ const MonthlyBudgetModal = ({
           backgroundColor: "#0f172a",
           color: "#f8fafc",
           borderBottom: "1px solid #1f2937",
-          fontWeight: 800,
+          fontWeight: 900,
           fontSize: "1.25rem",
           px: 3,
           py: 2,
         }}
       >
-        Monthly Budget
+        Budget Planner
       </DialogTitle>
 
       <DialogContent
@@ -112,6 +145,25 @@ const MonthlyBudgetModal = ({
           py: "24px !important",
         }}
       >
+        <TextField
+          fullWidth
+          select
+          label="Budget Type"
+          margin="normal"
+          value={form.periodType}
+          SelectProps={{ MenuProps: menuProps }}
+          sx={fieldSx}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              periodType: e.target.value,
+            })
+          }
+        >
+          <MenuItem value="weekly">Weekly</MenuItem>
+          <MenuItem value="monthly">Monthly</MenuItem>
+        </TextField>
+
         <TextField
           fullWidth
           select
@@ -137,7 +189,11 @@ const MonthlyBudgetModal = ({
 
         <TextField
           fullWidth
-          label="Budget Amount"
+          label={
+            form.periodType === "weekly"
+              ? "Weekly Budget Amount"
+              : "Monthly Budget Amount"
+          }
           type="number"
           margin="normal"
           value={form.amount}
@@ -145,39 +201,69 @@ const MonthlyBudgetModal = ({
           onChange={(e) => setForm({ ...form, amount: e.target.value })}
         />
 
-        <TextField
-          fullWidth
-          select
-          label="Month"
-          margin="normal"
-          value={form.month}
-          SelectProps={{ MenuProps: menuProps }}
-          sx={fieldSx}
-          onChange={(e) => setForm({ ...form, month: e.target.value })}
-        >
-          <MenuItem value={1}>January</MenuItem>
-          <MenuItem value={2}>February</MenuItem>
-          <MenuItem value={3}>March</MenuItem>
-          <MenuItem value={4}>April</MenuItem>
-          <MenuItem value={5}>May</MenuItem>
-          <MenuItem value={6}>June</MenuItem>
-          <MenuItem value={7}>July</MenuItem>
-          <MenuItem value={8}>August</MenuItem>
-          <MenuItem value={9}>September</MenuItem>
-          <MenuItem value={10}>October</MenuItem>
-          <MenuItem value={11}>November</MenuItem>
-          <MenuItem value={12}>December</MenuItem>
-        </TextField>
+        {form.periodType === "weekly" ? (
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
+              fullWidth
+              label="Week Start"
+              type="date"
+              margin="normal"
+              value={form.weekStart}
+              slotProps={{ inputLabel: { shrink: true } }}
+              sx={fieldSx}
+              onChange={(e) =>
+                setForm({ ...form, weekStart: e.target.value })
+              }
+            />
 
-        <TextField
-          fullWidth
-          label="Year"
-          type="number"
-          margin="normal"
-          value={form.year}
-          sx={fieldSx}
-          onChange={(e) => setForm({ ...form, year: e.target.value })}
-        />
+            <TextField
+              fullWidth
+              label="Week End"
+              type="date"
+              margin="normal"
+              value={form.weekEnd}
+              slotProps={{ inputLabel: { shrink: true } }}
+              sx={fieldSx}
+              onChange={(e) => setForm({ ...form, weekEnd: e.target.value })}
+            />
+          </Stack>
+        ) : (
+          <>
+            <TextField
+              fullWidth
+              select
+              label="Month"
+              margin="normal"
+              value={form.month}
+              SelectProps={{ MenuProps: menuProps }}
+              sx={fieldSx}
+              onChange={(e) => setForm({ ...form, month: e.target.value })}
+            >
+              <MenuItem value={1}>January</MenuItem>
+              <MenuItem value={2}>February</MenuItem>
+              <MenuItem value={3}>March</MenuItem>
+              <MenuItem value={4}>April</MenuItem>
+              <MenuItem value={5}>May</MenuItem>
+              <MenuItem value={6}>June</MenuItem>
+              <MenuItem value={7}>July</MenuItem>
+              <MenuItem value={8}>August</MenuItem>
+              <MenuItem value={9}>September</MenuItem>
+              <MenuItem value={10}>October</MenuItem>
+              <MenuItem value={11}>November</MenuItem>
+              <MenuItem value={12}>December</MenuItem>
+            </TextField>
+
+            <TextField
+              fullWidth
+              label="Year"
+              type="number"
+              margin="normal"
+              value={form.year}
+              sx={fieldSx}
+              onChange={(e) => setForm({ ...form, year: e.target.value })}
+            />
+          </>
+        )}
       </DialogContent>
 
       <DialogActions

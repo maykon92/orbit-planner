@@ -261,11 +261,31 @@ export const upsertMonthlyBudget = async (req, res) => {
   try {
     const workspaceId = await resolveWorkspaceId(req);
 
-    const { category, amount, month, year } = req.body;
+    const {
+      category,
+      amount,
+      periodType = "monthly",
+      month,
+      year,
+      weekStart,
+      weekEnd,
+    } = req.body;
 
-    if (!category || !amount || !month || !year) {
+    if (!category || !amount || !year) {
       return res.status(400).json({
-        message: "Category, amount, month and year are required.",
+        message: "Category, amount and year are required.",
+      });
+    }
+
+    if (periodType === "monthly" && !month) {
+      return res.status(400).json({
+        message: "Month is required for monthly budget.",
+      });
+    }
+
+    if (periodType === "weekly" && (!weekStart || !weekEnd)) {
+      return res.status(400).json({
+        message: "Week start and week end are required for weekly budget.",
       });
     }
 
@@ -274,8 +294,11 @@ export const upsertMonthlyBudget = async (req, res) => {
       workspaceId,
       category,
       amount: Number(amount),
-      month: Number(month),
+      periodType,
+      month: month ? Number(month) : undefined,
       year: Number(year),
+      weekStart: weekStart ? new Date(weekStart) : undefined,
+      weekEnd: weekEnd ? new Date(weekEnd) : undefined,
     });
 
     res.status(201).json(budget);
@@ -290,14 +313,22 @@ export const getMonthlyBudgets = async (req, res) => {
 
     const today = new Date();
 
+    const periodType = req.query.periodType || undefined;
     const month = Number(req.query.month) || today.getMonth() + 1;
     const year = Number(req.query.year) || today.getFullYear();
 
     const budgets = await getWorkspaceMonthlyBudgets({
       userId: req.user._id,
       workspaceId,
+      periodType,
       month,
       year,
+      weekStart: req.query.weekStart
+        ? new Date(req.query.weekStart)
+        : undefined,
+      weekEnd: req.query.weekEnd
+        ? new Date(req.query.weekEnd)
+        : undefined,
     });
 
     res.json(budgets);

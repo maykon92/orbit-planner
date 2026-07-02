@@ -84,12 +84,22 @@ export const deleteSavingGoal = async (goalId, workspaceId) => {
   return data;
 };
 
-export const getMonthlyBudgets = async (workspaceId, month, year) => {
+export const getMonthlyBudgets = async (
+  workspaceId,
+  month,
+  year,
+  periodType,
+  weekStart,
+  weekEnd
+) => {
   const { data } = await api.get("/finance/budgets", {
     params: {
       workspaceId,
       month,
       year,
+      periodType,
+      weekStart,
+      weekEnd,
     },
   });
 

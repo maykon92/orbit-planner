@@ -82,6 +82,29 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString();
 };
 
+const toInputDate = (date) => date.toISOString().split("T")[0];
+
+const isDateBetween = (date, start, end) => {
+  const target = new Date(date);
+  return target >= start && target <= end;
+};
+
+const getCurrentWeekRange = () => {
+  const today = new Date();
+  const day = today.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() + diffToMonday);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+
+  return { weekStart, weekEnd };
+};
+
 const ScrollBox = ({ children, maxHeight = 320 }) => (
   <Box
     sx={{
@@ -229,17 +252,32 @@ const Finance = () => {
       const currentMonth = today.getMonth() + 1;
       const currentYear = today.getFullYear();
 
-      const [expensesData, goalsData, budgetsData, incomesData] =
-        await Promise.all([
-          getExpenses(selectedWorkspaceId),
-          getSavingGoals(selectedWorkspaceId),
-          getMonthlyBudgets(selectedWorkspaceId, currentMonth, currentYear),
-          getIncomes(selectedWorkspaceId),
-        ]);
+      const { weekStart, weekEnd  } = getCurrentWeekRange();
+
+      const [
+        expensesData,
+        goalsData,
+        monthlyBudgetsData,
+        weeklyBudgetsData,
+        incomesData,
+      ] = await Promise.all([
+        getExpenses(selectedWorkspaceId),
+        getSavingGoals(selectedWorkspaceId),
+        getMonthlyBudgets(selectedWorkspaceId, currentMonth, currentYear, "monthly"),
+        getMonthlyBudgets(
+          selectedWorkspaceId,
+          currentMonth,
+          currentYear,
+          "weekly",
+          toInputDate(weekStart),
+          toInputDate(weekEnd )
+        ),
+        getIncomes(selectedWorkspaceId),
+      ]);
 
       setExpenses(expensesData);
       setGoals(goalsData);
-      setBudgets(budgetsData);
+      setBudgets([...weeklyBudgetsData, ...monthlyBudgetsData]);
       setIncomes(incomesData);
     } catch (error) {
       console.error("Error loading finance data:", error);
@@ -317,14 +355,10 @@ const Finance = () => {
   }, [totalSaved, totalGoalTarget]);
 
   const weeklyExpenses = useMemo(() => {
-    const today = new Date();
-    const startOfWeek = new Date(today);
-
-    startOfWeek.setDate(today.getDate() - today.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
+    const { weekStart, weekEnd } = getCurrentWeekRange();
 
     return expenses
-      .filter((expense) => new Date(expense.date) >= startOfWeek)
+      .filter((expense) => isDateBetween(expense.date, weekStart, weekEnd))
       .reduce((total, expense) => total + Number(expense.amount || 0), 0);
   }, [expenses]);
 
@@ -339,6 +373,17 @@ const Finance = () => {
           date.getMonth() === today.getMonth() &&
           date.getFullYear() === today.getFullYear()
         );
+      })
+      .reduce((total, expense) => total + Number(expense.amount || 0), 0);
+  }, [expenses]);
+
+  const yearlyExpenses = useMemo(() => {
+    const today = new Date();
+
+    return expenses
+      .filter((expense) => {
+        const date = new Date(expense.date);
+        return date.getFullYear() === today.getFullYear();
       })
       .reduce((total, expense) => total + Number(expense.amount || 0), 0);
   }, [expenses]);
@@ -384,18 +429,18 @@ const Finance = () => {
       let matchesPeriod = true;
 
       if (periodFilter === "week") {
-        const startOfWeek = new Date(today);
-
-        startOfWeek.setDate(today.getDate() - today.getDay());
-        startOfWeek.setHours(0, 0, 0, 0);
-
-        matchesPeriod = expenseDate >= startOfWeek;
+        const { weekStart, weekEnd } = getCurrentWeekRange();
+        matchesPeriod = isDateBetween(expenseDate, weekStart, weekEnd);
       }
 
       if (periodFilter === "month") {
         matchesPeriod =
           expenseDate.getMonth() === today.getMonth() &&
           expenseDate.getFullYear() === today.getFullYear();
+      }
+
+      if (periodFilter === "year") {
+        matchesPeriod = expenseDate.getFullYear() === today.getFullYear();
       }
 
       return matchesCategory && matchesPeriod;
@@ -407,11 +452,19 @@ const Finance = () => {
       const spent = expenses
         .filter((expense) => {
           const expenseDate = new Date(expense.date);
-          const sameCategory = expense.category === budget.category;
-          const sameMonth = expenseDate.getMonth() + 1 === Number(budget.month);
-          const sameYear = expenseDate.getFullYear() === Number(budget.year);
 
-          return sameCategory && sameMonth && sameYear;
+          if (budget.periodType === "weekly") {
+            return (
+              expense.category === budget.category &&
+              isDateBetween(expenseDate, new Date(budget.weekStart), new Date(budget.weekEnd))
+            );
+          }
+
+          return (
+            expense.category === budget.category &&
+            expenseDate.getMonth() + 1 === Number(budget.month) &&
+            expenseDate.getFullYear() === Number(budget.year)
+          );
         })
         .reduce((total, expense) => total + Number(expense.amount || 0), 0);
 
@@ -425,6 +478,28 @@ const Finance = () => {
       };
     });
   }, [budgets, expenses]);
+
+  useEffect(() => {
+   console.log("Budget Progress Data:", budgetProgress); 
+  }, [budgetProgress]);
+
+  
+
+  const budgetUsedPercentage = useMemo(() => {
+    const totalBudget = budgetProgress.reduce(
+      (total, budget) => total + Number(budget.amount || 0),
+      0
+    );
+
+    const totalSpentAgainstBudget = budgetProgress.reduce(
+      (total, budget) => total + Number(budget.spent || 0),
+      0
+    );
+
+    if (totalBudget <= 0) return 0;
+
+    return (totalSpentAgainstBudget / totalBudget) * 100;
+  }, [budgetProgress]);
 
   const financialInsights = useMemo(() => {
     const insights = [];
@@ -541,9 +616,11 @@ const Finance = () => {
             totalExpenses,
             weeklyExpenses,
             monthlyExpenses,
+            yearlyExpenses,
             monthlyIncome,
             currentBalance,
             savingsRate,
+            budgetUsedPercentage,
             totalSaved,
             activeGoals: goals.filter((goal) => goal.status === "active")
               .length,
@@ -565,10 +642,10 @@ const Finance = () => {
     <Stack spacing={3}>
       <Card sx={cardSx}>
         <CardContent>
-          <SectionTitle title="Monthly Budgets" />
+          <SectionTitle title="Budgets" />
 
           {budgetProgress.length === 0 ? (
-            <EmptyText>No monthly budgets created yet.</EmptyText>
+            <EmptyText>No budgets created yet.</EmptyText>
           ) : (
             <Stack spacing={2}>
               {budgetProgress.slice(0, 4).map((budget) => {
@@ -610,8 +687,8 @@ const Finance = () => {
                         </Typography>
 
                         <Typography sx={{ color: "#94a3b8", fontSize: 13 }}>
-                          {formatCurrency(budget.spent)} /{" "}
-                          {formatCurrency(budget.amount)}
+                          {budget.periodType === "weekly" ? "Weekly" : "Monthly"} •{" "}
+                          {formatCurrency(budget.spent)} / {formatCurrency(budget.amount)}
                         </Typography>
                       </Box>
 
@@ -995,12 +1072,20 @@ const Finance = () => {
           />
 
           <SummaryCard
-            title="Monthly Expenses"
+            title="Week Expenses"
+            value={formatCurrency(weeklyExpenses)}
+            subtitle="Monday to Sunday"
+            icon={<PaidIcon />}
+            accent="#fbbf24"
+          />
+
+          <SummaryCard
+            title="Month Expenses"
             value={formatCurrency(monthlyExpenses)}
             subtitle={
               monthlyIncome > 0
                 ? `${Math.round(expenseToIncomeRatio)}% of income`
-                : `${formatCurrency(weeklyExpenses)} this week`
+                : "Current month"
             }
             icon={<PaidIcon />}
             accent="#f87171"
@@ -1009,23 +1094,55 @@ const Finance = () => {
           <SummaryCard
             title="Current Balance"
             value={formatCurrency(currentBalance)}
-            subtitle="Available this month"
+            subtitle="Income minus monthly expenses"
             icon={<TrendingUpIcon />}
             accent={currentBalance >= 0 ? "#60a5fa" : "#f87171"}
           />
 
           <SummaryCard
-            title="Goals Progress"
+            title="Total Saved"
             value={formatCurrency(totalSaved)}
             subtitle={
               totalGoalTarget > 0
-                ? `${Math.round(goalProgress)}% of ${formatCurrency(
-                    totalGoalTarget
-                  )}`
-                : `${activeGoals} active goals`
+                ? `${Math.round(goalProgress)}% of goals`
+                : "No goal target yet"
             }
             icon={<SavingsIcon />}
             accent="#a78bfa"
+          />
+
+          <SummaryCard
+            title="Active Goals"
+            value={activeGoals}
+            subtitle={
+              totalGoalTarget > 0
+                ? `${formatCurrency(totalGoalTarget)} target`
+                : "Create your first goal"
+            }
+            icon={<SavingsIcon />}
+            accent="#818cf8"
+          />
+
+          <SummaryCard
+            title="Savings Rate"
+            value={`${Math.round(savingsRate)}%`}
+            subtitle="Saved compared to income"
+            icon={<AttachMoneyIcon />}
+            accent="#22c55e"
+          />
+
+          <SummaryCard
+            title="Budget Used"
+            value={`${Math.round(budgetUsedPercentage)}%`}
+            subtitle="Spent against weekly/monthly budgets"
+            icon={<AccountBalanceWalletIcon />}
+            accent={
+              budgetUsedPercentage >= 100
+                ? "#f87171"
+                : budgetUsedPercentage >= 80
+                ? "#fbbf24"
+                : "#60a5fa"
+            }
           />
         </Box>
 
@@ -1050,14 +1167,15 @@ const Finance = () => {
                 <TextField
                   select
                   size="small"
-                  label="Period"
+                  label="Time Range"
                   value={periodFilter}
                   onChange={(e) => setPeriodFilter(e.target.value)}
                   sx={fieldSx}
                 >
-                  <MenuItem value="all">All</MenuItem>
+                  <MenuItem value="all">All Time</MenuItem>
                   <MenuItem value="week">This Week</MenuItem>
                   <MenuItem value="month">This Month</MenuItem>
+                  <MenuItem value="year">This Year</MenuItem>
                 </TextField>
 
                 <TextField
@@ -1320,6 +1438,11 @@ const Finance = () => {
                     color: "#22c55e",
                   },
                   {
+                    label: "Week Expenses",
+                    value: weeklyExpenses,
+                    color: "#fbbf24",
+                  },
+                  {
                     label: "Monthly Expenses",
                     value: monthlyExpenses,
                     color: "#f87171",
@@ -1327,7 +1450,7 @@ const Finance = () => {
                   {
                     label: "Current Balance",
                     value: Math.max(currentBalance, 0),
-                    color: "#60a5fa",
+                    color: currentBalance >= 0 ? "#60a5fa" : "#f87171",
                   },
                 ].map((item) => {
                   const maxValue = Math.max(

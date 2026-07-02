@@ -37,9 +37,22 @@ const monthlyBudgetSchema = new mongoose.Schema(
       required: true,
     },
 
+    periodType: {
+      type: String,
+      enum: ["weekly", "monthly"],
+      default: "monthly",
+    },
+
+    weekStart: {
+      type: Date,
+    },
+
+    weekEnd: {
+      type: Date,
+    },
+
     month: {
       type: Number,
-      required: true,
     },
 
     year: {
@@ -51,7 +64,15 @@ const monthlyBudgetSchema = new mongoose.Schema(
 );
 
 monthlyBudgetSchema.index(
-  { workspaceId: 1, category: 1, month: 1, year: 1 },
+  {
+    workspaceId: 1,
+    category: 1,
+    periodType: 1,
+    weekStart: 1,
+    weekEnd: 1,
+    month: 1,
+    year: 1,
+  },
   { unique: true }
 );
 

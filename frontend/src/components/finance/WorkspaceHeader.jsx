@@ -79,7 +79,7 @@ const WorkspaceHeader = ({ workspace }) => {
         </Typography>
       </Stack>
 
-      <Stack direction="row" spacing={2} alignItems="center">
+      <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
         <AvatarGroup max={5}>
           {members.map((member) => (
             <Avatar
