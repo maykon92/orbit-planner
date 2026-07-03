@@ -47,3 +47,25 @@ export const getConversationMessages = async (conversationId) => {
     .populate("senderId", "name avatar email")
     .sort({ createdAt: 1 });
 };
+
+export const markConversationMessagesAsRead = async ({
+  conversationId,
+  userId,
+}) => {
+  await Message.updateMany(
+    {
+      conversationId,
+      senderId: { $ne: userId },
+      readBy: { $ne: userId },
+    },
+    {
+      $addToSet: {
+        readBy: userId,
+      },
+    }
+  );
+
+  return await Message.find({ conversationId })
+    .populate("senderId", "name avatar email")
+    .sort({ createdAt: 1 });
+};

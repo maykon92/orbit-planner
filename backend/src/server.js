@@ -32,6 +32,7 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+const onlineUsers = new Map();
 
 const io = new Server(server, {
   cors: {
@@ -43,7 +44,16 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
+  socket.on("userOnline", (userId) => {
+    if (!userId) return;
 
+    onlineUsers.set(userId.toString(), socket.id);
+
+    io.emit("userOnline", {
+      userId,
+    });
+  });
+  
   socket.on("joinConversation", (conversationId) => {
     socket.join(conversationId);
     console.log(`Socket ${socket.id} joined conversation ${conversationId}`);
@@ -84,6 +94,23 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
+
+    let disconnectedUserId = null;
+
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        disconnectedUserId = userId;
+        onlineUsers.delete(userId);
+        break;
+      }
+    }
+
+    if (disconnectedUserId) {
+      io.emit("userOffline", {
+        userId: disconnectedUserId,
+        lastSeen: new Date(),
+      });
+    }
   });
 });
 

@@ -1,15 +1,15 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  Box,
-  Typography,
   Avatar,
-  TextField,
-  IconButton,
+  Box,
   CircularProgress,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
   useMediaQuery,
   useTheme,
-  Stack,
 } from "@mui/material";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -19,8 +19,14 @@ import MainLayout from "../../layouts/MainLayout";
 import { useAuth } from "../../contexts/AuthContext";
 import { getImageUrl } from "../../utils/getImageUrl";
 import { socket } from "../../services/socket";
-import { getConversations, markConversationAsRead } from "../../services/conversationService";
-import { getMessages } from "../../services/messageService";
+import {
+  getConversations,
+  markConversationAsRead,
+} from "../../services/conversationService";
+import {
+  getMessages,
+  markMessagesAsRead,
+} from "../../services/messageService";
 
 const formatMessageTime = (date) => {
   if (!date) return "";
@@ -71,8 +77,9 @@ const Messages = () => {
   const [loading, setLoading] = useState(true);
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]);
-  const typingTimeout = useRef(null);
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
+  const typingTimeout = useRef(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = (behavior = "smooth") => {
@@ -80,9 +87,96 @@ const Messages = () => {
   };
 
   const getOtherUser = (conversation) => {
-    return conversation.participants.find(
+    return conversation?.participants?.find(
       (participant) => participant._id !== user?._id
     );
+  };
+
+  const otherUser = selectedConversation
+    ? getOtherUser(selectedConversation)
+    : null;
+
+  const isOtherUserOnline = otherUser
+    ? onlineUsers.includes(otherUser._id)
+    : false;
+
+  const lastOwnMessageId = useMemo(() => {
+    const ownMessages = messages.filter((message) => {
+      const senderId = message.senderId?._id || message.senderId;
+      return senderId?.toString() === user?._id?.toString();
+    });
+
+    return ownMessages[ownMessages.length - 1]?._id;
+  }, [messages, user?._id]);
+
+  const isUnreadConversation = (conversation) => {
+    return conversation.unreadBy?.some(
+      (userId) => userId.toString() === user?._id?.toString()
+    );
+  };
+
+  const handleSelectConversation = async (conversation) => {
+    setSelectedConversation(conversation);
+
+    if (isMobile) {
+      setMobileChatOpen(true);
+    }
+
+    if (isUnreadConversation(conversation)) {
+      await markConversationAsRead(conversation._id);
+
+      setConversations((prev) =>
+        prev.map((item) =>
+          item._id === conversation._id
+            ? {
+                ...item,
+                unreadBy: item.unreadBy?.filter(
+                  (id) => id.toString() !== user?._id?.toString()
+                ),
+              }
+            : item
+        )
+      );
+    }
+  };
+
+  const handleTypingChange = (value) => {
+    setText(value);
+
+    if (!selectedConversation?._id || !user?._id) return;
+
+    socket.emit("typing", {
+      conversationId: selectedConversation._id,
+      userId: user._id,
+      userName: user.name,
+    });
+
+    clearTimeout(typingTimeout.current);
+
+    typingTimeout.current = setTimeout(() => {
+      socket.emit("stopTyping", {
+        conversationId: selectedConversation._id,
+        userId: user._id,
+      });
+    }, 1200);
+  };
+
+  const handleSend = () => {
+    if (!text.trim() || !selectedConversation?._id) return;
+
+    socket.emit("sendMessage", {
+      conversationId: selectedConversation._id,
+      senderId: user._id,
+      text,
+    });
+
+    socket.emit("stopTyping", {
+      conversationId: selectedConversation._id,
+      userId: user._id,
+    });
+
+    clearTimeout(typingTimeout.current);
+    setText("");
   };
 
   useEffect(() => {
@@ -95,12 +189,15 @@ const Messages = () => {
 
         if (conversationIdFromState) {
           const selected = data.find(
-            (conv) => conv._id === conversationIdFromState
+            (conversation) => conversation._id === conversationIdFromState
           );
+
           setSelectedConversation(selected || data[0]);
         } else if (data.length > 0) {
           setSelectedConversation(data[0]);
         }
+      } catch (error) {
+        console.error("Error loading conversations:", error);
       } finally {
         setLoading(false);
       }
@@ -113,13 +210,38 @@ const Messages = () => {
     if (!selectedConversation?._id) return;
 
     const loadMessages = async () => {
-      const data = await getMessages(selectedConversation._id);
-      setMessages(data);
+      try {
+        const data = await getMessages(selectedConversation._id);
+        setMessages(data);
 
-      socket.connect();
-      socket.emit("joinConversation", selectedConversation._id);
+        const updatedMessages = await markMessagesAsRead(
+          selectedConversation._id
+        );
 
-      setTimeout(() => scrollToBottom("auto"), 100);
+        setMessages(updatedMessages);
+
+        await markConversationAsRead(selectedConversation._id);
+
+        setConversations((prev) =>
+          prev.map((conversation) =>
+            conversation._id === selectedConversation._id
+              ? {
+                  ...conversation,
+                  unreadBy: conversation.unreadBy?.filter(
+                    (id) => id.toString() !== user?._id?.toString()
+                  ),
+                }
+              : conversation
+          )
+        );
+
+        socket.connect();
+        socket.emit("joinConversation", selectedConversation._id);
+
+        setTimeout(() => scrollToBottom("auto"), 100);
+      } catch (error) {
+        console.error("Error loading messages:", error);
+      }
     };
 
     loadMessages();
@@ -127,14 +249,21 @@ const Messages = () => {
     return () => {
       socket.off("receiveMessage");
     };
-  }, [selectedConversation]);
+  }, [selectedConversation, user?._id]);
 
   useEffect(() => {
     const handleReceiveMessage = (message) => {
-      if (message.conversationId === selectedConversation?._id) {
+      const isCurrentConversation =
+        message.conversationId === selectedConversation?._id;
+
+      if (isCurrentConversation) {
         setMessages((prev) => [...prev, message]);
 
         markConversationAsRead(message.conversationId).catch(console.error);
+
+        markMessagesAsRead(message.conversationId)
+          .then((updatedMessages) => setMessages(updatedMessages))
+          .catch(console.error);
       }
 
       setConversations((prev) => {
@@ -142,9 +271,6 @@ const Messages = () => {
           if (conversation._id !== message.conversationId) {
             return conversation;
           }
-
-          const isCurrentConversation =
-            message.conversationId === selectedConversation?._id;
 
           return {
             ...conversation,
@@ -154,7 +280,9 @@ const Messages = () => {
               ? conversation.unreadBy?.filter(
                   (id) => id.toString() !== user?._id?.toString()
                 )
-              : conversation.unreadBy?.includes(user?._id)
+              : conversation.unreadBy?.some(
+                  (id) => id.toString() === user?._id?.toString()
+                )
               ? conversation.unreadBy
               : [...(conversation.unreadBy || []), user?._id],
           };
@@ -179,65 +307,20 @@ const Messages = () => {
     scrollToBottom("smooth");
   }, [messages]);
 
-  const handleSend = () => {
-    if (!text.trim() || !selectedConversation?._id) return;
-
-    socket.emit("sendMessage", {
-      conversationId: selectedConversation._id,
-      senderId: user._id,
-      text,
-    });
-
-    setText("");
-  };
-
-  const otherUser = selectedConversation
-    ? getOtherUser(selectedConversation)
-    : null;
-
-  const isUnreadConversation = (conversation) => {
-    return conversation.unreadBy?.some(
-      (userId) => userId.toString() === user?._id?.toString()
-    );
-  };
-
-  const handleSelectConversation = async (conversation) => {
-    setSelectedConversation(conversation);
-
-    if (isMobile) setMobileChatOpen(true);
-
-    if (isUnreadConversation(conversation)) {
-      await markConversationAsRead(conversation._id);
-
-      setConversations((prev) =>
-        prev.map((item) =>
-          item._id === conversation._id
-            ? {
-                ...item,
-                unreadBy: item.unreadBy?.filter(
-                  (id) => id.toString() !== user?._id?.toString()
-                ),
-              }
-            : item
-        )
-      );
-    }
-  };
-
   useEffect(() => {
     const handleTyping = (data) => {
       if (data.conversationId !== selectedConversation?._id) return;
+      if (data.userId === user?._id) return;
 
       setTypingUsers((prev) => {
-        if (prev.some((u) => u.userId === data.userId)) return prev;
-
+        if (prev.some((item) => item.userId === data.userId)) return prev;
         return [...prev, data];
       });
     };
 
     const handleStopTyping = (data) => {
       setTypingUsers((prev) =>
-        prev.filter((u) => u.userId !== data.userId)
+        prev.filter((item) => item.userId !== data.userId)
       );
     };
 
@@ -248,7 +331,32 @@ const Messages = () => {
       socket.off("userTyping", handleTyping);
       socket.off("userStoppedTyping", handleStopTyping);
     };
-  }, [selectedConversation]);
+  }, [selectedConversation, user?._id]);
+
+  useEffect(() => {
+    if (!user?._id) return;
+
+    socket.connect();
+    socket.emit("userOnline", user._id);
+
+    const handleUserOnline = ({ userId }) => {
+      setOnlineUsers((prev) =>
+        prev.includes(userId) ? prev : [...prev, userId]
+      );
+    };
+
+    const handleUserOffline = ({ userId }) => {
+      setOnlineUsers((prev) => prev.filter((id) => id !== userId));
+    };
+
+    socket.on("userOnline", handleUserOnline);
+    socket.on("userOffline", handleUserOffline);
+
+    return () => {
+      socket.off("userOnline", handleUserOnline);
+      socket.off("userOffline", handleUserOffline);
+    };
+  }, [user?._id]);
 
   return (
     <MainLayout>
@@ -301,10 +409,10 @@ const Messages = () => {
                 const other = getOtherUser(conversation);
                 const isActive =
                   selectedConversation?._id === conversation._id;
-
                 const isUnread = isUnreadConversation(conversation);
                 const conversationTime =
-                  conversation.lastMessageAt || conversation.lastMessage?.createdAt;
+                  conversation.lastMessageAt ||
+                  conversation.lastMessage?.createdAt;
 
                 return (
                   <Box
@@ -371,7 +479,8 @@ const Messages = () => {
                             fontWeight: isUnread ? 800 : 400,
                           }}
                         >
-                          {conversation.lastMessage?.text || "Start a conversation"}
+                          {conversation.lastMessage?.text ||
+                            "Start a conversation"}
                         </Typography>
 
                         {isUnread && (
@@ -436,14 +545,45 @@ const Messages = () => {
                   onClick={() => navigate(`/users/${otherUser?._id}`)}
                 >
                   <Avatar
-                    src={otherUser?.avatar ? getImageUrl(otherUser.avatar) : ""}
+                    src={
+                      otherUser?.avatar ? getImageUrl(otherUser.avatar) : ""
+                    }
                   >
                     {otherUser?.name?.charAt(0)}
                   </Avatar>
 
-                  <Typography fontWeight="bold" sx={{ color: "#fff" }}>
-                    {otherUser?.name || "User"}
-                  </Typography>
+                  <Box>
+                    <Typography fontWeight="bold" sx={{ color: "#fff" }}>
+                      {otherUser?.name || "User"}
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.8,
+                        mt: 0.3,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          background: isOtherUserOnline
+                            ? "#22c55e"
+                            : "#64748b",
+                          boxShadow: isOtherUserOnline
+                            ? "0 0 10px rgba(34,197,94,.8)"
+                            : "none",
+                        }}
+                      />
+
+                      <Typography sx={{ color: "#94a3b8", fontSize: 12 }}>
+                        {isOtherUserOnline ? "Online" : "Offline"}
+                      </Typography>
+                    </Box>
+                  </Box>
                 </Box>
               </Box>
 
@@ -456,9 +596,19 @@ const Messages = () => {
                 }}
               >
                 {messages.map((message, index) => {
+                  const senderId = message.senderId?._id || message.senderId;
+
                   const isMine =
-                    message.senderId?._id === user?._id ||
-                    message.senderId === user?._id;
+                    senderId?.toString() === user?._id?.toString();
+
+                  const isLastOwnMessage = message._id === lastOwnMessageId;
+
+                  const isSeen =
+                    isMine &&
+                    isLastOwnMessage &&
+                    message.readBy?.some(
+                      (id) => id.toString() !== user?._id?.toString()
+                    );
 
                   const previous = messages[index - 1];
 
@@ -535,6 +685,21 @@ const Messages = () => {
                           >
                             {formatMessageTime(message.createdAt)}
                           </Typography>
+
+                          {isMine && isLastOwnMessage && (
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                display: "block",
+                                mt: 0.4,
+                                fontSize: 10,
+                                color: "rgba(255,255,255,.72)",
+                                textAlign: "right",
+                              }}
+                            >
+                              {isSeen ? "Seen" : "Sent"}
+                            </Typography>
+                          )}
                         </Box>
                       </Box>
                     </Box>
@@ -544,6 +709,55 @@ const Messages = () => {
                 <div ref={messagesEndRef} />
               </Box>
 
+              {typingUsers.length > 0 && (
+                <Box
+                  sx={{
+                    px: 3,
+                    pb: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.2,
+                    background: "#020617",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: "#60a5fa",
+                      fontSize: 13,
+                      fontStyle: "italic",
+                    }}
+                  >
+                    {typingUsers[0].userName} is typing
+                  </Typography>
+
+                  <Box sx={{ display: "flex", gap: 0.5 }}>
+                    {[0, 1, 2].map((dot) => (
+                      <Box
+                        key={dot}
+                        sx={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#60a5fa",
+                          animation: "typingBounce 1.2s infinite ease-in-out",
+                          animationDelay: `${dot * 0.18}s`,
+                          "@keyframes typingBounce": {
+                            "0%, 80%, 100%": {
+                              transform: "translateY(0)",
+                              opacity: 0.35,
+                            },
+                            "40%": {
+                              transform: "translateY(-5px)",
+                              opacity: 1,
+                            },
+                          },
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
               <Box
                 sx={{
                   p: { xs: 1.5, md: 2 },
@@ -552,75 +766,11 @@ const Messages = () => {
                   gap: 2,
                 }}
               >
-                {typingUsers.length > 0 && (
-                  <Box
-                    sx={{
-                      px: 3,
-                      pb: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.2,
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        color: "#60a5fa",
-                        fontSize: 13,
-                        fontStyle: "italic",
-                      }}
-                    >
-                      {typingUsers[0].userName} is typing
-                    </Typography>
-
-                    <Box sx={{ display: "flex", gap: 0.5 }}>
-                      {[0, 1, 2].map((dot) => (
-                        <Box
-                          key={dot}
-                          sx={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: "50%",
-                            background: "#60a5fa",
-                            animation: "typingBounce 1.2s infinite ease-in-out",
-                            animationDelay: `${dot * 0.18}s`,
-                            "@keyframes typingBounce": {
-                              "0%, 80%, 100%": {
-                                transform: "translateY(0)",
-                                opacity: 0.35,
-                              },
-                              "40%": {
-                                transform: "translateY(-5px)",
-                                opacity: 1,
-                              },
-                            },
-                          }}
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                )}
                 <TextField
                   fullWidth
                   placeholder="Write a message..."
                   value={text}
-                  onChange={(e) => {
-                    setText(e.target.value);
-
-                    socket.emit("typing", {
-                      conversationId: selectedConversation._id,
-                      userId: user._id,
-                      userName: user.name,
-                    });
-
-                    clearTimeout(typingTimeout.current);
-
-                    typingTimeout.current = setTimeout(() => {
-                      socket.emit("stopTyping", {
-                        conversationId: selectedConversation._id,
-                        userId: user._id,
-                      });
-                    }, 1200);
-                  }}
+                  onChange={(e) => handleTypingChange(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();

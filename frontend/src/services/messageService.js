@@ -9,3 +9,8 @@ export const sendMessageApi = async (messageData) => {
   const { data } = await api.post("/messages", messageData);
   return data;
 };
+
+export const markMessagesAsRead = async (conversationId) => {
+  const { data } = await api.put(`/messages/conversations/${conversationId}/read`);
+  return data;
+};

@@ -1,6 +1,7 @@
 import {
   createMessage,
   getConversationMessages,
+  markConversationMessagesAsRead,
 } from "../services/messageService.js";
 
 export const sendMessage = async (req, res) => {
@@ -28,6 +29,19 @@ export const sendMessage = async (req, res) => {
 export const getMessages = async (req, res) => {
   try {
     const messages = await getConversationMessages(req.params.conversationId);
+
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const readConversationMessages = async (req, res) => {
+  try {
+    const messages = await markConversationMessagesAsRead({
+      conversationId: req.params.conversationId,
+      userId: req.user._id,
+    });
 
     res.json(messages);
   } catch (error) {
