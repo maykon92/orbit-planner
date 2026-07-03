@@ -145,7 +145,11 @@ const AddIncomeModal = ({
           label="Source"
           margin="normal"
           value={form.source}
-          SelectProps={{ MenuProps: menuProps }}
+          slotProps={{
+            select: {
+              MenuProps: menuProps,
+            },
+          }}
           sx={fieldSx}
           onChange={(e) => setForm({ ...form, source: e.target.value })}
         >

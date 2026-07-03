@@ -137,3 +137,16 @@ export const deleteIncome = async (incomeId, workspaceId) => {
 
   return data;
 };
+
+export const updateBudget = async (budgetId, budgetData) => {
+  const { data } = await api.put(`/finance/budgets/${budgetId}`, budgetData);
+  return data;
+};
+
+export const deleteBudget = async (budgetId, workspaceId) => {
+  const { data } = await api.delete(`/finance/budgets/${budgetId}`, {
+    params: { workspaceId },
+  });
+
+  return data;
+};

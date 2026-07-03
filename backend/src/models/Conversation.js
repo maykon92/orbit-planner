@@ -15,6 +15,17 @@ const conversationSchema = new mongoose.Schema(
       ref: "Message",
       default: null,
     },
+
+    lastMessageAt: {
+      type: Date,
+    },
+
+    unreadBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,

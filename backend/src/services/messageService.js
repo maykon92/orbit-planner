@@ -10,26 +10,30 @@ export const createMessage = async ({ conversationId, senderId, text }) => {
     readBy: [senderId],
   });
 
-  await Conversation.findByIdAndUpdate(conversationId, {
-    lastMessage: message._id,
-  });
-
   const conversation = await Conversation.findById(conversationId);
 
-  if (conversation?.participants?.length) {
-    const recipientId = conversation.participants.find(
-      (participantId) => participantId.toString() !== senderId.toString()
-    );
+  const recipientId = conversation?.participants?.find(
+    (participantId) => participantId.toString() !== senderId.toString()
+  );
 
-    if (recipientId) {
-      await createNotification({
-        recipientId,
-        senderId,
-        type: "message",
-        message: "sent you a message",
-        conversationId,
-      });
-    }
+  await Conversation.findByIdAndUpdate(conversationId, {
+    lastMessage: message._id,
+    lastMessageAt: message.createdAt,
+    ...(recipientId && {
+      $addToSet: {
+        unreadBy: recipientId,
+      },
+    }),
+  });
+
+  if (recipientId) {
+    await createNotification({
+      recipientId,
+      senderId,
+      type: "message",
+      message: "sent you a message",
+      conversationId,
+    });
   }
 
   return await Message.findById(message._id).populate(

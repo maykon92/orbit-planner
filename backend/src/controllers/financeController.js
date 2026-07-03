@@ -18,6 +18,8 @@ import {
   getWorkspaceIncomes,
   updateUserIncome,
   deleteUserIncome,
+  updateUserBudget,
+  deleteUserBudget,
 } from "../services/financeService.js";
 
 const resolveWorkspaceId = async (req) => {
@@ -414,6 +416,61 @@ export const deleteIncome = async (req, res) => {
     res.json({
       message: "Income deleted successfully.",
       incomeId: deletedIncome._id,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateBudget = async (req, res) => {
+  try {
+    const workspaceId = await resolveWorkspaceId(req);
+
+    const budget = await updateUserBudget({
+      userId: req.user._id,
+      workspaceId,
+      budgetId: req.params.budgetId,
+      budgetData: {
+        ...req.body,
+        amount: Number(req.body.amount),
+        month: req.body.month ? Number(req.body.month) : undefined,
+        year: req.body.year ? Number(req.body.year) : undefined,
+        weekStart: req.body.weekStart ? new Date(req.body.weekStart) : undefined,
+        weekEnd: req.body.weekEnd ? new Date(req.body.weekEnd) : undefined,
+      },
+    });
+
+    if (!budget) {
+      return res.status(404).json({
+        message: "Budget not found.",
+      });
+    }
+
+    res.json(budget);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteBudget = async (req, res) => {
+  try {
+    const workspaceId = await resolveWorkspaceId(req);
+
+    const deletedBudget = await deleteUserBudget({
+      userId: req.user._id,
+      workspaceId,
+      budgetId: req.params.budgetId,
+    });
+
+    if (!deletedBudget) {
+      return res.status(404).json({
+        message: "Budget not found.",
+      });
+    }
+
+    res.json({
+      message: "Budget deleted successfully.",
+      budgetId: deletedBudget._id,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

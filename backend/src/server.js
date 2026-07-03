@@ -49,6 +49,21 @@ io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} joined conversation ${conversationId}`);
   });
 
+  socket.on("typing", ({ conversationId, userId, userName }) => {
+    socket.to(conversationId).emit("userTyping", {
+      conversationId,
+      userId,
+      userName,
+    });
+  });
+
+  socket.on("stopTyping", ({ conversationId, userId }) => {
+    socket.to(conversationId).emit("userStoppedTyping", {
+      conversationId,
+      userId,
+    });
+  });
+
   socket.on("sendMessage", async (payload) => {
     try {
       const { conversationId, senderId, text } = payload;

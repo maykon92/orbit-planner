@@ -135,15 +135,17 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
       onClose={onClose}
       fullWidth
       maxWidth="sm"
-      paperprops={{
-        sx: {
-          borderRadius: 4,
-          backgroundColor: "#0f172a",
-          color: "#f8fafc",
-          border: "1px solid #1f2937",
-          boxShadow: "0 30px 80px rgba(0,0,0,0.65)",
-          overflow: "hidden",
-        },
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 4,
+            backgroundColor: "#0f172a",
+            color: "#f8fafc",
+            border: "1px solid #1f2937",
+            boxShadow: "0 30px 80px rgba(0,0,0,0.65)",
+            overflow: "hidden",
+          },
+        }
       }}
     >
       <Box 

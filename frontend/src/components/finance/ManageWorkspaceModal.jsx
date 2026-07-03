@@ -50,16 +50,18 @@ const ManageWorkspaceModal = ({ open, onClose, workspace, onUpdated }) => {
       onClose={onClose}
       fullWidth
       maxWidth="md"
-      PaperProps={{
-        sx: {
-          background:
-            "linear-gradient(145deg, rgba(20,33,61,.98), rgba(15,23,42,.98))",
-          color: "#f8fafc",
-          borderRadius: 4,
-          border: "1px solid rgba(255,255,255,.08)",
-          boxShadow: "0 30px 80px rgba(0,0,0,.65)",
-          overflow: "hidden",
-        },
+      slotProps={{
+        paper: {
+          sx: {
+            background:
+              "linear-gradient(145deg, rgba(20,33,61,.98), rgba(15,23,42,.98))",
+            color: "#f8fafc",
+            borderRadius: 4,
+            border: "1px solid rgba(255,255,255,.08)",
+            boxShadow: "0 30px 80px rgba(0,0,0,.65)",
+            overflow: "hidden",
+          },
+        }
       }}
     >
       {loading ? (

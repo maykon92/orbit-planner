@@ -51,13 +51,15 @@ export const ConfirmProvider = ({ children }) => {
         onClose={() => handleClose(false)}
         fullWidth
         maxWidth="xs"
-        paperprops={{
-          sx: {
-            borderRadius: 4,
-            background: "#0f172a",
-            color: "#f8fafc",
-            border: "1px solid #1f2937",
-          },
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 4,
+              background: "#0f172a",
+              color: "#f8fafc",
+              border: "1px solid #1f2937",
+            },
+          }
         }}
       >
         <DialogTitle fontWeight="bold">{confirm.title}</DialogTitle>

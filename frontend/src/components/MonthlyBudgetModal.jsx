@@ -8,10 +8,11 @@ import {
   MenuItem,
   Stack,
 } from "@mui/material";
-import { useState } from "react";
-import { upsertMonthlyBudget } from "../services/financeService";
-
-const getToday = () => new Date().toISOString().split("T")[0];
+import { useEffect, useState } from "react";
+import {
+  upsertMonthlyBudget,
+  updateBudget,
+} from "../services/financeService";
 
 const getWeekRange = () => {
   const today = new Date();
@@ -30,11 +31,11 @@ const getWeekRange = () => {
   };
 };
 
-const MonthlyBudgetModal = ({ open, onClose, onSaved, workspaceId }) => {
+const getInitialForm = () => {
   const today = new Date();
   const currentWeek = getWeekRange();
 
-  const [form, setForm] = useState({
+  return {
     category: "food",
     amount: "",
     periodType: "monthly",
@@ -42,7 +43,39 @@ const MonthlyBudgetModal = ({ open, onClose, onSaved, workspaceId }) => {
     year: today.getFullYear(),
     weekStart: currentWeek.weekStart,
     weekEnd: currentWeek.weekEnd,
-  });
+  };
+};
+
+const formatDateForInput = (date) => {
+  if (!date) return "";
+  return new Date(date).toISOString().split("T")[0];
+};
+
+const MonthlyBudgetModal = ({
+  open,
+  onClose,
+  onSaved,
+  workspaceId,
+  budget = null,
+}) => {
+  const isEditing = !!budget;
+  const [form, setForm] = useState(getInitialForm());
+
+  useEffect(() => {
+    if (budget) {
+      setForm({
+        category: budget.category || "food",
+        amount: budget.amount || "",
+        periodType: budget.periodType || "monthly",
+        month: budget.month || new Date().getMonth() + 1,
+        year: budget.year || new Date().getFullYear(),
+        weekStart: formatDateForInput(budget.weekStart),
+        weekEnd: formatDateForInput(budget.weekEnd),
+      });
+    } else {
+      setForm(getInitialForm());
+    }
+  }, [budget, open]);
 
   const handleSubmit = async () => {
     const payload = {
@@ -62,20 +95,15 @@ const MonthlyBudgetModal = ({ open, onClose, onSaved, workspaceId }) => {
       payload.weekEnd = form.weekEnd;
     }
 
-    await upsertMonthlyBudget(payload);
+    if (isEditing) {
+      await updateBudget(budget._id, payload);
+    } else {
+      await upsertMonthlyBudget(payload);
+    }
 
     await onSaved?.();
     onClose();
-
-    setForm({
-      category: "food",
-      amount: "",
-      periodType: "monthly",
-      month: today.getMonth() + 1,
-      year: today.getFullYear(),
-      weekStart: currentWeek.weekStart,
-      weekEnd: currentWeek.weekEnd,
-    });
+    setForm(getInitialForm());
   };
 
   const fieldSx = {
@@ -134,7 +162,7 @@ const MonthlyBudgetModal = ({ open, onClose, onSaved, workspaceId }) => {
           py: 2,
         }}
       >
-        Budget Planner
+        {isEditing ? "Edit Budget" : "Budget Planner"}
       </DialogTitle>
 
       <DialogContent
@@ -151,7 +179,11 @@ const MonthlyBudgetModal = ({ open, onClose, onSaved, workspaceId }) => {
           label="Budget Type"
           margin="normal"
           value={form.periodType}
-          SelectProps={{ MenuProps: menuProps }}
+          slotProps={{
+            select: {
+              MenuProps: menuProps,
+            },
+          }}
           sx={fieldSx}
           onChange={(e) =>
             setForm({
@@ -170,7 +202,11 @@ const MonthlyBudgetModal = ({ open, onClose, onSaved, workspaceId }) => {
           label="Category"
           margin="normal"
           value={form.category}
-          SelectProps={{ MenuProps: menuProps }}
+          slotProps={{
+            select: {
+              MenuProps: menuProps,
+            },
+          }}
           sx={fieldSx}
           onChange={(e) => setForm({ ...form, category: e.target.value })}
         >
@@ -235,7 +271,11 @@ const MonthlyBudgetModal = ({ open, onClose, onSaved, workspaceId }) => {
               label="Month"
               margin="normal"
               value={form.month}
-              SelectProps={{ MenuProps: menuProps }}
+              slotProps={{
+                select: {
+                  MenuProps: menuProps,
+                },
+              }}
               sx={fieldSx}
               onChange={(e) => setForm({ ...form, month: e.target.value })}
             >
@@ -278,7 +318,7 @@ const MonthlyBudgetModal = ({ open, onClose, onSaved, workspaceId }) => {
         </Button>
 
         <Button variant="contained" onClick={handleSubmit}>
-          Save Budget
+          {isEditing ? "Update Budget" : "Save Budget"}
         </Button>
       </DialogActions>
     </Dialog>

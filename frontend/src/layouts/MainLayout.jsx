@@ -298,11 +298,8 @@ const MainLayout = ({ children }) => {
                                 width: 52,
                                 height: 52,
                             }}
-                        >
-                            {user?.name?.charAt(0)}
-                        </Avatar>
+                        />
                         <Box>
-                            <Typography fontWeight="bold">{user?.name}</Typography>
                             <Typography variant="caption" sx={{ color: "#94a3b8" }}>
                                 Personal workspace
                             </Typography>

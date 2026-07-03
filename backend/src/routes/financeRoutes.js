@@ -20,6 +20,8 @@ import {
   getIncomes,
   updateIncome,
   deleteIncome,
+  updateBudget,
+  deleteBudget,
 } from "../controllers/financeController.js";
 
 const router = express.Router();
@@ -39,12 +41,17 @@ router.post("/goals", createSavingGoal);
 router.post("/goals/:goalId/contributions", createContribution);
 router.put("/goals/:goalId", updateSavingGoal);
 router.delete("/goals/:goalId", deleteSavingGoal);
+
 router.get("/budgets", getMonthlyBudgets);
 router.post("/budgets", upsertMonthlyBudget);
+router.put("/budgets/:budgetId", authGuard, updateBudget);
+router.delete("/budgets/:budgetId", authGuard, deleteBudget);
+
 router.get("/incomes", getIncomes);
 router.post("/incomes", createIncome);
 router.put("/incomes/:incomeId", updateIncome);
 router.delete("/incomes/:incomeId", deleteIncome);
+
 router.post(
   "/workspaces/:workspaceId/invite",
   inviteWorkspaceMember

@@ -39,6 +39,7 @@ import {
   getMonthlyBudgets,
   getIncomes,
   deleteIncome,
+  deleteBudget,
 } from "../../services/financeService";
 import { generateAiSuggestion } from "../../services/aiService";
 
@@ -216,6 +217,123 @@ const actionButtonSx = {
   },
 };
 
+const BudgetProgressItem = ({ budget, onEdit, onDelete }) => {
+  const isWarning = budget.percentage >= 80 && budget.percentage < 100;
+  const isOver = budget.percentage >= 100;
+
+  return (
+    <Box
+      sx={{
+        p: 2,
+        borderRadius: 4,
+        background: "rgba(15,23,42,.65)",
+        border: isOver
+          ? "1px solid rgba(248,113,113,.45)"
+          : isWarning
+          ? "1px solid rgba(251,191,36,.45)"
+          : "1px solid rgba(148,163,184,.14)",
+      }}
+    >
+      <Stack
+        direction="row"
+        sx={{
+          mb: 1,
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Box>
+          <Typography
+            sx={{
+              color: "#fff",
+              fontWeight: 900,
+              textTransform: "capitalize",
+            }}
+          >
+            {budget.category}
+          </Typography>
+
+          <Typography sx={{ color: "#94a3b8", fontSize: 13 }}>
+            {budget.periodType === "weekly" ? "Weekly" : "Monthly"} •{" "}
+            {formatCurrency(budget.spent)} / {formatCurrency(budget.amount)}
+          </Typography>
+        </Box>
+
+        <Typography
+          sx={{
+            fontWeight: 900,
+            color: isOver ? "#f87171" : isWarning ? "#fbbf24" : "#22c55e",
+          }}
+        >
+          {Math.round(budget.percentage)}%
+        </Typography>
+      </Stack>
+
+      <LinearProgress
+        variant="determinate"
+        value={Math.min(budget.percentage, 100)}
+        sx={{
+          height: 9,
+          borderRadius: 99,
+          background: "#1e293b",
+          "& .MuiLinearProgress-bar": {
+            borderRadius: 99,
+            background: isOver
+              ? "linear-gradient(135deg,#ef4444,#f97316)"
+              : isWarning
+              ? "linear-gradient(135deg,#f59e0b,#fbbf24)"
+              : "linear-gradient(135deg,#2563eb,#22c55e)",
+          },
+        }}
+      />
+
+      <Stack direction="row" sx={{ mt: 1.5, alignItems: "center" }}>
+        <Typography
+          sx={{
+            flex: 1,
+            fontSize: 13,
+            color: isOver ? "#fca5a5" : "#94a3b8",
+          }}
+        >
+          {isOver
+            ? `Over budget by ${formatCurrency(Math.abs(budget.remaining))}`
+            : `${formatCurrency(budget.remaining)} remaining`}
+        </Typography>
+
+        <Stack direction="row" spacing={1}>
+          <IconButton
+            size="small"
+            onClick={onEdit}
+            sx={{
+              color: "#93c5fd",
+              border: "1px solid rgba(147,197,253,.25)",
+              "&:hover": {
+                background: "rgba(147,197,253,.08)",
+              },
+            }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+
+          <IconButton
+            size="small"
+            onClick={onDelete}
+            sx={{
+              color: "#fca5a5",
+              border: "1px solid rgba(252,165,165,.25)",
+              "&:hover": {
+                background: "rgba(239,68,68,.12)",
+              },
+            }}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Stack>
+      </Stack>
+    </Box>
+  );
+};
+
 const Finance = () => {
   const [workspaces, setWorkspaces] = useState([]);
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState("");
@@ -241,6 +359,9 @@ const Finance = () => {
   const [openAiAnalysisModal, setOpenAiAnalysisModal] = useState(false);
   const [selectedIncome, setSelectedIncome] = useState(null);
   const [incomeToDelete, setIncomeToDelete] = useState(null);
+  const [viewMode, setViewMode] = useState("week");
+  const [selectedBudget, setSelectedBudget] = useState(null);
+  const [budgetToDelete, setBudgetToDelete] = useState(null);
 
   const [searchParams] = useSearchParams();
 
@@ -362,6 +483,18 @@ const Finance = () => {
       .reduce((total, expense) => total + Number(expense.amount || 0), 0);
   }, [expenses]);
 
+  const weeklyIncome = useMemo(() => {
+    const { weekStart, weekEnd } = getCurrentWeekRange();
+
+    return incomes
+      .filter((income) => isDateBetween(income.startDate, weekStart, weekEnd))
+      .reduce((total, income) => total + Number(income.amount || 0), 0);
+  }, [incomes]);
+
+  const weeklyBalance = useMemo(() => {
+    return weeklyIncome - weeklyExpenses;
+  }, [weeklyIncome, weeklyExpenses]);
+
   const monthlyExpenses = useMemo(() => {
     const today = new Date();
 
@@ -479,11 +612,79 @@ const Finance = () => {
     });
   }, [budgets, expenses]);
 
-  useEffect(() => {
-   console.log("Budget Progress Data:", budgetProgress); 
-  }, [budgetProgress]);
+  const visibleBudgetProgress = useMemo(() => {
+    return budgetProgress.filter((budget) => {
+      if (viewMode === "week") return budget.periodType === "weekly";
+      if (viewMode === "month") return budget.periodType === "monthly";
 
-  
+      return true;
+    });
+  }, [budgetProgress, viewMode]);
+
+  const visibleBudgetUsedPercentage = useMemo(() => {
+    const totalBudget = visibleBudgetProgress.reduce(
+      (total, budget) => total + Number(budget.amount || 0),
+      0
+    );
+
+    const totalSpentAgainstBudget = visibleBudgetProgress.reduce(
+      (total, budget) => total + Number(budget.spent || 0),
+      0
+    );
+
+    if (totalBudget <= 0) return 0;
+
+    return (totalSpentAgainstBudget / totalBudget) * 100;
+  }, [visibleBudgetProgress]);
+
+  const weeklyBudgetProgress = useMemo(() => {
+    return visibleBudgetProgress.filter(
+      (budget) => budget.periodType === "weekly"
+    );
+  }, [visibleBudgetProgress]);
+
+  const monthlyBudgetProgress = useMemo(() => {
+    return visibleBudgetProgress.filter(
+      (budget) => budget.periodType === "monthly"
+    );
+  }, [visibleBudgetProgress]);
+
+  const dashboardMetrics = useMemo(() => {
+    if (viewMode === "week") {
+      return {
+        incomeTitle: "Weekly Income",
+        incomeValue: weeklyIncome,
+        expenseTitle: "Week Expenses",
+        expenseValue: weeklyExpenses,
+        balanceTitle: "Week Balance",
+        balanceValue: weeklyBalance,
+        budgetTitle: "Weekly Budget Used",
+        budgetValue: visibleBudgetUsedPercentage,
+        rangeLabel: "Monday to Sunday",
+      };
+    }
+
+    return {
+      incomeTitle: "Monthly Income",
+      incomeValue: monthlyIncome,
+      expenseTitle: "Month Expenses",
+      expenseValue: monthlyExpenses,
+      balanceTitle: "Month Balance",
+      balanceValue: currentBalance,
+      budgetTitle: "Monthly Budget Used",
+      budgetValue: visibleBudgetUsedPercentage,
+      rangeLabel: "Current month",
+    };
+  }, [
+    viewMode,
+    weeklyIncome,
+    weeklyExpenses,
+    weeklyBalance,
+    monthlyIncome,
+    monthlyExpenses,
+    currentBalance,
+    visibleBudgetUsedPercentage,
+  ]);
 
   const budgetUsedPercentage = useMemo(() => {
     const totalBudget = budgetProgress.reduce(
@@ -644,104 +845,69 @@ const Finance = () => {
         <CardContent>
           <SectionTitle title="Budgets" />
 
-          {budgetProgress.length === 0 ? (
-            <EmptyText>No budgets created yet.</EmptyText>
-          ) : (
-            <Stack spacing={2}>
-              {budgetProgress.slice(0, 4).map((budget) => {
-                const isWarning =
-                  budget.percentage >= 80 && budget.percentage < 100;
-                const isOver = budget.percentage >= 100;
-
-                return (
-                  <Box
-                    key={budget._id}
-                    sx={{
-                      p: 2,
-                      borderRadius: 4,
-                      background: "rgba(15,23,42,.65)",
-                      border: isOver
-                        ? "1px solid rgba(248,113,113,.45)"
-                        : isWarning
-                        ? "1px solid rgba(251,191,36,.45)"
-                        : "1px solid rgba(148,163,184,.14)",
-                    }}
-                  >
-                    <Stack
-                      direction="row"
-                      sx={{ 
-                        mb: 1,
-                        alignItems:"center",
-                        justifyContent:"space-between",
-                      }}
-                    >
-                      <Box>
-                        <Typography
-                          sx={{
-                            color: "#fff",
-                            fontWeight: 900,
-                            textTransform: "capitalize",
-                          }}
-                        >
-                          {budget.category}
-                        </Typography>
-
-                        <Typography sx={{ color: "#94a3b8", fontSize: 13 }}>
-                          {budget.periodType === "weekly" ? "Weekly" : "Monthly"} •{" "}
-                          {formatCurrency(budget.spent)} / {formatCurrency(budget.amount)}
-                        </Typography>
-                      </Box>
-
-                      <Typography
-                        sx={{
-                          fontWeight: 900,
-                          color: isOver
-                            ? "#f87171"
-                            : isWarning
-                            ? "#fbbf24"
-                            : "#22c55e",
-                        }}
-                      >
-                        {Math.round(budget.percentage)}%
-                      </Typography>
-                    </Stack>
-
-                    <LinearProgress
-                      variant="determinate"
-                      value={Math.min(budget.percentage, 100)}
-                      sx={{
-                        height: 9,
-                        borderRadius: 99,
-                        background: "#1e293b",
-                        "& .MuiLinearProgress-bar": {
-                          borderRadius: 99,
-                          background: isOver
-                            ? "linear-gradient(135deg,#ef4444,#f97316)"
-                            : isWarning
-                            ? "linear-gradient(135deg,#f59e0b,#fbbf24)"
-                            : "linear-gradient(135deg,#2563eb,#22c55e)",
-                        },
-                      }}
-                    />
-
-                    <Typography
-                      sx={{
-                        mt: 1,
-                        fontSize: 13,
-                        color: isOver ? "#fca5a5" : "#94a3b8",
-                      }}
-                    >
-                      {isOver
-                        ? `Over budget by ${formatCurrency(
-                            Math.abs(budget.remaining)
-                          )}`
-                        : `${formatCurrency(budget.remaining)} remaining`}
+            {visibleBudgetProgress.length === 0 ? (
+              <EmptyText>
+                No {viewMode === "week" ? "weekly" : "monthly"} budgets created yet.
+              </EmptyText>
+            ) : (
+              <Stack spacing={3}>
+                {weeklyBudgetProgress.length > 0 && (
+                  <Box>
+                    <Typography sx={{ color: "#93c5fd", fontWeight: 900, mb: 1.5 }}>
+                      Weekly Budgets
                     </Typography>
+
+                    <Stack spacing={2}>
+                      {weeklyBudgetProgress.map((budget) => (
+                        <BudgetProgressItem
+                          key={budget._id}
+                          budget={budget}
+                          onEdit={() => {
+                            setSelectedBudget(budget);
+                            setOpenBudgetModal(true);
+                          }}
+                          onDelete={() => {
+                            setBudgetToDelete(budget);
+                            setExpenseToDelete(null);
+                            setGoalToDelete(null);
+                            setIncomeToDelete(null);
+                            setOpenDeleteDialog(true);
+                          }}
+                        />
+                      ))}
+                    </Stack>
                   </Box>
-                );
-              })}
-            </Stack>
-          )}
+                )}
+
+                {monthlyBudgetProgress.length > 0 && (
+                  <Box>
+                    <Typography sx={{ color: "#c4b5fd", fontWeight: 900, mb: 1.5 }}>
+                      Monthly Budgets
+                    </Typography>
+
+                    <Stack spacing={2}>
+                      {monthlyBudgetProgress.map((budget) => (
+                        <BudgetProgressItem
+                          key={budget._id}
+                          budget={budget}
+                          onEdit={() => {
+                            setSelectedBudget(budget);
+                            setOpenBudgetModal(true);
+                          }}
+                          onDelete={() => {
+                            setBudgetToDelete(budget);
+                            setExpenseToDelete(null);
+                            setGoalToDelete(null);
+                            setIncomeToDelete(null);
+                            setOpenDeleteDialog(true);
+                          }}
+                        />
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
+              </Stack>
+            )}
         </CardContent>
       </Card>
 
@@ -962,7 +1128,10 @@ const Finance = () => {
             <Button
               variant="outlined"
               startIcon={<AccountBalanceWalletIcon />}
-              onClick={() => setOpenBudgetModal(true)}
+              onClick={() => {
+                setSelectedBudget(null);
+                setOpenBudgetModal(true);
+              }}
               disabled={!selectedWorkspaceId}
               sx={{
                 ...actionButtonSx,
@@ -1015,6 +1184,18 @@ const Finance = () => {
                 ))}
               </TextField>
 
+              <TextField
+                select
+                size="small"
+                label="View Mode"
+                value={viewMode}
+                onChange={(e) => setViewMode(e.target.value)}
+                sx={fieldSx}
+              >
+                <MenuItem value="week">This Week</MenuItem>
+                <MenuItem value="month">This Month</MenuItem>
+              </TextField>
+
               <Button
                 variant="outlined"
                 startIcon={<GroupsIcon />}
@@ -1064,9 +1245,9 @@ const Finance = () => {
           }}
         >
           <SummaryCard
-            title="Monthly Income"
-            value={formatCurrency(monthlyIncome)}
-            subtitle={`${Math.round(savingsRate)}% savings rate`}
+            title={dashboardMetrics.incomeTitle}
+            value={formatCurrency(dashboardMetrics.incomeValue)}
+            subtitle={dashboardMetrics.rangeLabel}
             icon={<AttachMoneyIcon />}
             accent="#22c55e"
           />
@@ -1080,23 +1261,19 @@ const Finance = () => {
           />
 
           <SummaryCard
-            title="Month Expenses"
-            value={formatCurrency(monthlyExpenses)}
-            subtitle={
-              monthlyIncome > 0
-                ? `${Math.round(expenseToIncomeRatio)}% of income`
-                : "Current month"
-            }
+            title={dashboardMetrics.expenseTitle}
+            value={formatCurrency(dashboardMetrics.expenseValue)}
+            subtitle={dashboardMetrics.rangeLabel}
             icon={<PaidIcon />}
             accent="#f87171"
           />
 
           <SummaryCard
-            title="Current Balance"
-            value={formatCurrency(currentBalance)}
-            subtitle="Income minus monthly expenses"
+            title={dashboardMetrics.balanceTitle}
+            value={formatCurrency(dashboardMetrics.balanceValue)}
+            subtitle="Income minus expenses"
             icon={<TrendingUpIcon />}
-            accent={currentBalance >= 0 ? "#60a5fa" : "#f87171"}
+            accent={dashboardMetrics.balanceValue >= 0 ? "#60a5fa" : "#f87171"}
           />
 
           <SummaryCard
@@ -1132,14 +1309,14 @@ const Finance = () => {
           />
 
           <SummaryCard
-            title="Budget Used"
-            value={`${Math.round(budgetUsedPercentage)}%`}
-            subtitle="Spent against weekly/monthly budgets"
+            title={dashboardMetrics.budgetTitle}
+            value={`${Math.round(dashboardMetrics.budgetValue)}%`}
+            subtitle="Spent against budget"
             icon={<AccountBalanceWalletIcon />}
             accent={
-              budgetUsedPercentage >= 100
+              dashboardMetrics.budgetValue >= 100
                 ? "#f87171"
-                : budgetUsedPercentage >= 80
+                : dashboardMetrics.budgetValue >= 80
                 ? "#fbbf24"
                 : "#60a5fa"
             }
@@ -1721,6 +1898,8 @@ const Finance = () => {
             ? "Delete saving goal"
             : incomeToDelete
             ? "Delete income"
+            : budgetToDelete
+            ? "Delete budget"
             : "Delete expense"
         }
         message={
@@ -1729,6 +1908,10 @@ const Finance = () => {
             : incomeToDelete
             ? `Are you sure you want to delete this income record of ${formatCurrency(
                 incomeToDelete.amount
+              )}?`
+            : budgetToDelete
+            ? `Are you sure you want to delete the ${budgetToDelete.periodType} ${budgetToDelete.category} budget of ${formatCurrency(
+                budgetToDelete.amount
               )}?`
             : expenseToDelete
             ? `Are you sure you want to delete "${expenseToDelete.title}"?`
@@ -1741,6 +1924,7 @@ const Finance = () => {
           setExpenseToDelete(null);
           setGoalToDelete(null);
           setIncomeToDelete(null);
+          setBudgetToDelete(null);
         }}
         onConfirm={async () => {
           if (expenseToDelete) {
@@ -1755,19 +1939,28 @@ const Finance = () => {
             await deleteIncome(incomeToDelete._id, selectedWorkspaceId);
           }
 
+          if (budgetToDelete) {
+            await deleteBudget(budgetToDelete._id, selectedWorkspaceId);
+          }
+
           await loadFinanceData();
 
           setOpenDeleteDialog(false);
           setExpenseToDelete(null);
           setGoalToDelete(null);
           setIncomeToDelete(null);
+          setBudgetToDelete(null);
         }}
       />
 
       <MonthlyBudgetModal
         open={openBudgetModal}
-        onClose={() => setOpenBudgetModal(false)}
+        onClose={() => {
+          setOpenBudgetModal(false);
+          setSelectedBudget(null);
+        }}
         workspaceId={selectedWorkspaceId}
+        budget={selectedBudget}
         onSaved={loadFinanceData}
       />
 

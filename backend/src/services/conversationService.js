@@ -22,5 +22,5 @@ export const getUserConversations = async (userId) => {
   })
     .populate("participants", "name avatar email")
     .populate("lastMessage")
-    .sort({ updatedAt: -1 });
+    .sort({ lastMessageAt: -1, updatedAt: -1 });
 };

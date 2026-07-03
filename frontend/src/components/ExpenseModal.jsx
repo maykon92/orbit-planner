@@ -98,15 +98,17 @@ const ExpenseModal = ({ open, onClose, onSaved, expense = null, workspaceId }) =
       onClose={onClose}
       fullWidth
       maxWidth="sm"
-      PaperProps={{
-        sx: {
-          backgroundColor: "#0f172a",
-          color: "#f8fafc",
-          borderRadius: 4,
-          border: "1px solid #1f2937",
-          boxShadow: "0 30px 80px rgba(0,0,0,0.65)",
-          overflow: "hidden",
-        },
+      slotProps={{
+        paper: {
+          sx: {
+            backgroundColor: "#0f172a",
+            color: "#f8fafc",
+            borderRadius: 4,
+            border: "1px solid #1f2937",
+            boxShadow: "0 30px 80px rgba(0,0,0,0.65)",
+            overflow: "hidden",
+          },
+        }
       }}
     >
       <DialogTitle
@@ -156,7 +158,11 @@ const ExpenseModal = ({ open, onClose, onSaved, expense = null, workspaceId }) =
           label="Category"
           margin="normal"
           value={form.category}
-          SelectProps={{ MenuProps: menuProps }}
+          slotProps={{
+            select: {
+              MenuProps: menuProps,
+            },
+          }}
           sx={fieldSx}
           onChange={(e) => setForm({ ...form, category: e.target.value })}
         >
@@ -190,7 +196,11 @@ const ExpenseModal = ({ open, onClose, onSaved, expense = null, workspaceId }) =
           label="Payment Method"
           margin="normal"
           value={form.paymentMethod}
-          SelectProps={{ MenuProps: menuProps }}
+          slotProps={{
+            select: {
+              MenuProps: menuProps,
+            },
+          }}
           sx={fieldSx}
           onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
         >

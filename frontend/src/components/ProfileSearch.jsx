@@ -23,8 +23,7 @@ const ProfileSearch = () => {
   const [isFocused, setIsFocused] = useState(false);
 
   const handleOpenProfile = (userId) => {
-    setQuery("");
-    setUsers([]);
+    clearSearch();
     setIsFocused(false);
     navigate(`/users/${userId}`);
   };

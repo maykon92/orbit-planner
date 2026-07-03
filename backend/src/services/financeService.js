@@ -518,3 +518,45 @@ export const deleteUserIncome = async ({
     workspaceId,
   });
 };
+
+export const updateUserBudget = async ({
+  userId,
+  workspaceId,
+  budgetId,
+  budgetData,
+}) => {
+  const hasAccess = await userHasWorkspaceAccess({ userId, workspaceId });
+
+  if (!hasAccess) {
+    throw new Error("Workspace access denied.");
+  }
+
+  return await MonthlyBudget.findOneAndUpdate(
+    {
+      _id: budgetId,
+      workspaceId,
+    },
+    {
+      ...budgetData,
+      workspaceId,
+    },
+    { new: true }
+  ).populate("createdBy", "name avatar email");
+};
+
+export const deleteUserBudget = async ({
+  userId,
+  workspaceId,
+  budgetId,
+}) => {
+  const hasAccess = await userHasWorkspaceAccess({ userId, workspaceId });
+
+  if (!hasAccess) {
+    throw new Error("Workspace access denied.");
+  }
+
+  return await MonthlyBudget.findOneAndDelete({
+    _id: budgetId,
+    workspaceId,
+  });
+};

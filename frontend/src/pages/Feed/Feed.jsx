@@ -786,12 +786,14 @@ const Feed = () => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleCloseMenu}
-        paperprops={{
-          sx: {
-            background: "#0f172a",
-            color: "#f8fafc",
-            border: "1px solid #1f2937",
-          },
+        slotProps={{
+          paper: {
+            sx: {
+              background: "#0f172a",
+              color: "#f8fafc",
+              border: "1px solid #1f2937",
+            },
+          }
         }}
       >
         <MenuItem onClick={handleOpenEdit}>Edit</MenuItem>

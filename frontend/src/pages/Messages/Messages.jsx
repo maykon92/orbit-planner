@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -7,8 +7,9 @@ import {
   TextField,
   IconButton,
   CircularProgress,
-  useMediaQuery, 
+  useMediaQuery,
   useTheme,
+  Stack,
 } from "@mui/material";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -18,8 +19,43 @@ import MainLayout from "../../layouts/MainLayout";
 import { useAuth } from "../../contexts/AuthContext";
 import { getImageUrl } from "../../utils/getImageUrl";
 import { socket } from "../../services/socket";
-import { getConversations } from "../../services/conversationService";
+import { getConversations, markConversationAsRead } from "../../services/conversationService";
 import { getMessages } from "../../services/messageService";
+
+const formatMessageTime = (date) => {
+  if (!date) return "";
+
+  return new Date(date).toLocaleTimeString("en-AU", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const formatConversationTime = (date) => {
+  if (!date) return "";
+
+  return new Date(date).toLocaleTimeString("en-AU", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const formatMessageDate = (date) => {
+  const d = new Date(date);
+  const today = new Date();
+  const yesterday = new Date();
+
+  yesterday.setDate(today.getDate() - 1);
+
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+
+  return d.toLocaleDateString("en-AU", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+};
 
 const Messages = () => {
   const { user } = useAuth();
@@ -34,6 +70,14 @@ const Messages = () => {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
+  const [typingUsers, setTypingUsers] = useState([]);
+  const typingTimeout = useRef(null);
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = (behavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  };
 
   const getOtherUser = (conversation) => {
     return conversation.participants.find(
@@ -50,10 +94,12 @@ const Messages = () => {
         const conversationIdFromState = location.state?.conversationId;
 
         if (conversationIdFromState) {
-            const selected = data.find((conv) => conv._id === conversationIdFromState);
-            setSelectedConversation(selected || data[0]);
+          const selected = data.find(
+            (conv) => conv._id === conversationIdFromState
+          );
+          setSelectedConversation(selected || data[0]);
         } else if (data.length > 0) {
-            setSelectedConversation(data[0]);
+          setSelectedConversation(data[0]);
         }
       } finally {
         setLoading(false);
@@ -72,6 +118,8 @@ const Messages = () => {
 
       socket.connect();
       socket.emit("joinConversation", selectedConversation._id);
+
+      setTimeout(() => scrollToBottom("auto"), 100);
     };
 
     loadMessages();
@@ -82,16 +130,54 @@ const Messages = () => {
   }, [selectedConversation]);
 
   useEffect(() => {
-    socket.on("receiveMessage", (message) => {
+    const handleReceiveMessage = (message) => {
       if (message.conversationId === selectedConversation?._id) {
         setMessages((prev) => [...prev, message]);
+
+        markConversationAsRead(message.conversationId).catch(console.error);
       }
-    });
+
+      setConversations((prev) => {
+        const updated = prev.map((conversation) => {
+          if (conversation._id !== message.conversationId) {
+            return conversation;
+          }
+
+          const isCurrentConversation =
+            message.conversationId === selectedConversation?._id;
+
+          return {
+            ...conversation,
+            lastMessage: message,
+            lastMessageAt: message.createdAt,
+            unreadBy: isCurrentConversation
+              ? conversation.unreadBy?.filter(
+                  (id) => id.toString() !== user?._id?.toString()
+                )
+              : conversation.unreadBy?.includes(user?._id)
+              ? conversation.unreadBy
+              : [...(conversation.unreadBy || []), user?._id],
+          };
+        });
+
+        return updated.sort(
+          (a, b) =>
+            new Date(b.lastMessageAt || b.updatedAt) -
+            new Date(a.lastMessageAt || a.updatedAt)
+        );
+      });
+    };
+
+    socket.on("receiveMessage", handleReceiveMessage);
 
     return () => {
-      socket.off("receiveMessage");
+      socket.off("receiveMessage", handleReceiveMessage);
     };
-  }, [selectedConversation]);
+  }, [selectedConversation, user?._id]);
+
+  useEffect(() => {
+    scrollToBottom("smooth");
+  }, [messages]);
 
   const handleSend = () => {
     if (!text.trim() || !selectedConversation?._id) return;
@@ -108,6 +194,61 @@ const Messages = () => {
   const otherUser = selectedConversation
     ? getOtherUser(selectedConversation)
     : null;
+
+  const isUnreadConversation = (conversation) => {
+    return conversation.unreadBy?.some(
+      (userId) => userId.toString() === user?._id?.toString()
+    );
+  };
+
+  const handleSelectConversation = async (conversation) => {
+    setSelectedConversation(conversation);
+
+    if (isMobile) setMobileChatOpen(true);
+
+    if (isUnreadConversation(conversation)) {
+      await markConversationAsRead(conversation._id);
+
+      setConversations((prev) =>
+        prev.map((item) =>
+          item._id === conversation._id
+            ? {
+                ...item,
+                unreadBy: item.unreadBy?.filter(
+                  (id) => id.toString() !== user?._id?.toString()
+                ),
+              }
+            : item
+        )
+      );
+    }
+  };
+
+  useEffect(() => {
+    const handleTyping = (data) => {
+      if (data.conversationId !== selectedConversation?._id) return;
+
+      setTypingUsers((prev) => {
+        if (prev.some((u) => u.userId === data.userId)) return prev;
+
+        return [...prev, data];
+      });
+    };
+
+    const handleStopTyping = (data) => {
+      setTypingUsers((prev) =>
+        prev.filter((u) => u.userId !== data.userId)
+      );
+    };
+
+    socket.on("userTyping", handleTyping);
+    socket.on("userStoppedTyping", handleStopTyping);
+
+    return () => {
+      socket.off("userTyping", handleTyping);
+      socket.off("userStoppedTyping", handleStopTyping);
+    };
+  }, [selectedConversation]);
 
   return (
     <MainLayout>
@@ -161,13 +302,14 @@ const Messages = () => {
                 const isActive =
                   selectedConversation?._id === conversation._id;
 
+                const isUnread = isUnreadConversation(conversation);
+                const conversationTime =
+                  conversation.lastMessageAt || conversation.lastMessage?.createdAt;
+
                 return (
                   <Box
                     key={conversation._id}
-                    onClick={() => {
-                      setSelectedConversation(conversation);
-                      if (isMobile) setMobileChatOpen(true);
-                    }}
+                    onClick={() => handleSelectConversation(conversation)}
                     sx={{
                       p: 2,
                       display: "flex",
@@ -180,29 +322,71 @@ const Messages = () => {
                       },
                     }}
                   >
-                    {isMobile && (
-                      <IconButton
-                        onClick={() => setMobileChatOpen(false)}
-                        sx={{ color: "#f8fafc" }}
-                      >
-                        <ArrowBackIcon />
-                      </IconButton>
-                    )}
                     <Avatar src={other?.avatar ? getImageUrl(other.avatar) : ""}>
                       {other?.name?.charAt(0)}
                     </Avatar>
 
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography fontWeight="bold" sx={{ color: "#f8fafc" }}>
-                        {other?.name || "User"}
-                      </Typography>
-
-                      <Typography
-                        noWrap
-                        sx={{ color: "#64748b", fontSize: 13 }}
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Stack
+                        direction="row"
+                        sx={{
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 1,
+                        }}
                       >
-                        {conversation.lastMessage?.text || "Start a conversation"}
-                      </Typography>
+                        <Typography
+                          fontWeight={isUnread ? 900 : 700}
+                          sx={{ color: "#f8fafc" }}
+                          noWrap
+                        >
+                          {other?.name || "User"}
+                        </Typography>
+
+                        <Typography
+                          sx={{
+                            color: isUnread ? "#60a5fa" : "#64748b",
+                            fontSize: 11,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {formatConversationTime(conversationTime)}
+                        </Typography>
+                      </Stack>
+
+                      <Stack
+                        direction="row"
+                        sx={{
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 1,
+                          mt: 0.5,
+                        }}
+                      >
+                        <Typography
+                          noWrap
+                          sx={{
+                            color: isUnread ? "#cbd5e1" : "#64748b",
+                            fontSize: 13,
+                            fontWeight: isUnread ? 800 : 400,
+                          }}
+                        >
+                          {conversation.lastMessage?.text || "Start a conversation"}
+                        </Typography>
+
+                        {isUnread && (
+                          <Box
+                            sx={{
+                              width: 10,
+                              height: 10,
+                              borderRadius: "50%",
+                              background: "#2563eb",
+                              boxShadow: "0 0 12px rgba(37,99,235,.8)",
+                              flexShrink: 0,
+                            }}
+                          />
+                        )}
+                      </Stack>
                     </Box>
                   </Box>
                 );
@@ -233,6 +417,15 @@ const Messages = () => {
                   gap: 2,
                 }}
               >
+                {isMobile && (
+                  <IconButton
+                    onClick={() => setMobileChatOpen(false)}
+                    sx={{ color: "#f8fafc" }}
+                  >
+                    <ArrowBackIcon />
+                  </IconButton>
+                )}
+
                 <Box
                   sx={{
                     display: "flex",
@@ -242,12 +435,12 @@ const Messages = () => {
                   }}
                   onClick={() => navigate(`/users/${otherUser?._id}`)}
                 >
-                  <Avatar src={otherUser?.avatar ? getImageUrl(otherUser.avatar) : ""}>
+                  <Avatar
+                    src={otherUser?.avatar ? getImageUrl(otherUser.avatar) : ""}
+                  >
                     {otherUser?.name?.charAt(0)}
                   </Avatar>
-                </Box>
 
-                <Box>
                   <Typography fontWeight="bold" sx={{ color: "#fff" }}>
                     {otherUser?.name || "User"}
                   </Typography>
@@ -262,36 +455,93 @@ const Messages = () => {
                   background: "#020617",
                 }}
               >
-                {messages.map((message) => {
+                {messages.map((message, index) => {
                   const isMine =
                     message.senderId?._id === user?._id ||
                     message.senderId === user?._id;
 
+                  const previous = messages[index - 1];
+
+                  const showDay =
+                    !previous ||
+                    new Date(previous.createdAt).toDateString() !==
+                      new Date(message.createdAt).toDateString();
+
                   return (
-                    <Box
-                      key={message._id || `${message.createdAt}-${message.text}`}
-                      sx={{
-                        mb: 2,
-                        display: "flex",
-                        justifyContent: isMine ? "flex-end" : "flex-start",
-                      }}
-                    >
+                    <Box key={message._id || `${message.createdAt}-${index}`}>
+                      {showDay && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            my: 3,
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              px: 2,
+                              py: 0.6,
+                              borderRadius: 20,
+                              background: "#111827",
+                              color: "#94a3b8",
+                              fontSize: 12,
+                              border: "1px solid #1f2937",
+                            }}
+                          >
+                            {formatMessageDate(message.createdAt)}
+                          </Typography>
+                        </Box>
+                      )}
+
                       <Box
                         sx={{
-                          maxWidth: "70%",
-                          p: 2,
-                          borderRadius: 4,
-                          background: isMine ? "#2563eb" : "#111827",
-                          color: "#fff",
-                          border: isMine ? "none" : "1px solid #1f2937",
-                          lineHeight: 1.6,
+                          mb: 2,
+                          display: "flex",
+                          justifyContent: isMine ? "flex-end" : "flex-start",
                         }}
                       >
-                        {message.text}
+                        <Box
+                          sx={{
+                            maxWidth: "72%",
+                            px: 2,
+                            py: 1.4,
+                            borderRadius: 3,
+                            background: isMine ? "#2563eb" : "#111827",
+                            color: "#fff",
+                            border: isMine ? "none" : "1px solid #1f2937",
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              whiteSpace: "pre-wrap",
+                              wordBreak: "break-word",
+                              lineHeight: 1.6,
+                            }}
+                          >
+                            {message.text}
+                          </Typography>
+
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              display: "block",
+                              mt: 1,
+                              fontSize: 11,
+                              color: isMine
+                                ? "rgba(255,255,255,.75)"
+                                : "#94a3b8",
+                              textAlign: "right",
+                            }}
+                          >
+                            {formatMessageTime(message.createdAt)}
+                          </Typography>
+                        </Box>
                       </Box>
                     </Box>
                   );
                 })}
+
+                <div ref={messagesEndRef} />
               </Box>
 
               <Box
@@ -302,11 +552,75 @@ const Messages = () => {
                   gap: 2,
                 }}
               >
+                {typingUsers.length > 0 && (
+                  <Box
+                    sx={{
+                      px: 3,
+                      pb: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.2,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: "#60a5fa",
+                        fontSize: 13,
+                        fontStyle: "italic",
+                      }}
+                    >
+                      {typingUsers[0].userName} is typing
+                    </Typography>
+
+                    <Box sx={{ display: "flex", gap: 0.5 }}>
+                      {[0, 1, 2].map((dot) => (
+                        <Box
+                          key={dot}
+                          sx={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: "50%",
+                            background: "#60a5fa",
+                            animation: "typingBounce 1.2s infinite ease-in-out",
+                            animationDelay: `${dot * 0.18}s`,
+                            "@keyframes typingBounce": {
+                              "0%, 80%, 100%": {
+                                transform: "translateY(0)",
+                                opacity: 0.35,
+                              },
+                              "40%": {
+                                transform: "translateY(-5px)",
+                                opacity: 1,
+                              },
+                            },
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
                 <TextField
                   fullWidth
                   placeholder="Write a message..."
                   value={text}
-                  onChange={(e) => setText(e.target.value)}
+                  onChange={(e) => {
+                    setText(e.target.value);
+
+                    socket.emit("typing", {
+                      conversationId: selectedConversation._id,
+                      userId: user._id,
+                      userName: user.name,
+                    });
+
+                    clearTimeout(typingTimeout.current);
+
+                    typingTimeout.current = setTimeout(() => {
+                      socket.emit("stopTyping", {
+                        conversationId: selectedConversation._id,
+                        userId: user._id,
+                      });
+                    }, 1200);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();

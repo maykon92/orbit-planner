@@ -1,3 +1,4 @@
+import Conversation from "../models/Conversation.js";
 import {
   findOrCreateConversation,
   getUserConversations,
@@ -25,8 +26,29 @@ export const createOrGetConversation = async (req, res) => {
 export const getMyConversations = async (req, res) => {
   try {
     const conversations = await getUserConversations(req.user._id);
-
     res.json(conversations);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const markConversationAsRead = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+
+    await Conversation.findOneAndUpdate(
+      {
+        _id: conversationId,
+        participants: req.user._id,
+      },
+      {
+        $pull: {
+          unreadBy: req.user._id,
+        },
+      }
+    );
+
+    res.json({ message: "Conversation marked as read." });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -382,13 +382,16 @@ const TabDetails = () => {
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={handleCloseMenu}
-                paperprops={{
-                    sx: {
-                    background: "#0f172a",
-                    color: "#f8fafc",
-                    border: "1px solid #1f2937",
-                    },
+                slotProps={{
+                    paper: {
+                        sx: {
+                            background: "#0f172a",
+                            color: "#f8fafc",
+                            border: "1px solid #1f2937",
+                        },
+                    }
                 }}
+                
             >
                 <MenuItem
                     onClick={() => {
@@ -415,12 +418,14 @@ const TabDetails = () => {
                 anchorEl={itemMenuAnchor}
                 open={Boolean(itemMenuAnchor)}
                 onClose={handleCloseItemMenu}
-                paperprops={{
-                    sx: {
-                    background: "#0f172a",
-                    color: "#f8fafc",
-                    border: "1px solid #1f2937",
-                    },
+                slotProps={{
+                    paper: {
+                        sx: {
+                            background: "#0f172a",
+                            color: "#f8fafc",
+                            border: "1px solid #1f2937",
+                        },
+                    }
                 }}
             >
                 <MenuItem onClick={handleOpenEditItem}>Edit Item</MenuItem>

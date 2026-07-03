@@ -77,15 +77,17 @@ const AddContributionModal = ({
       onClose={onClose} 
       fullWidth 
       maxWidth="sm"
-      paperprops={{
-        sx: {
-          backgroundColor: "#0f172a",
-          color: "#f8fafc",
-          borderRadius: 4,
-          border: "1px solid #1f2937",
-          boxShadow: "0 30px 80px rgba(0,0,0,0.65)",
-          overflow: "hidden",
-        },
+      slotProps={{
+        paper: {
+          sx: {
+            backgroundColor: "#0f172a",
+            color: "#f8fafc",
+            borderRadius: 4,
+            border: "1px solid #1f2937",
+            boxShadow: "0 30px 80px rgba(0,0,0,0.65)",
+            overflow: "hidden",
+          },
+        }
       }}
     >
       <DialogTitle
