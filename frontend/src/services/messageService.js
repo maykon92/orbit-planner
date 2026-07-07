@@ -14,3 +14,13 @@ export const markMessagesAsRead = async (conversationId) => {
   const { data } = await api.put(`/messages/conversations/${conversationId}/read`);
   return data;
 };
+
+export const updateMessage = async (messageId, text) => {
+  const { data } = await api.put(`/messages/${messageId}`, { text });
+  return data;
+};
+
+export const deleteMessage = async (messageId) => {
+  const { data } = await api.delete(`/messages/${messageId}`);
+  return data;
+};

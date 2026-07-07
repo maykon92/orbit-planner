@@ -6,8 +6,11 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
 import MainLayout from "../../layouts/MainLayout";
+
 import EventDetailsModal from "../../components/EventDetailsModal";
 import CreateItemModal from "../../components/CreateItemModal";
+import PageHeader from "../../components/layout/PageHeader";
+
 import { getTabs } from "../../services/tabService";
 import api from "../../services/api";
 
@@ -100,57 +103,24 @@ const LifeDashboard = () => {
           py: 5,
         }}
       >
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={3}
-          sx={{ 
+        <PageHeader
+          title="Life Planner"
+          subtitle="Do life with focus, memory and intention."
+        />
+
+        <Card 
+          sx={{
+            ...cardSx,
             mb: 4,
-            justifyContent: "space-between",
-            alignItems:{ xs: "flex-start", md: "center" }
+            overflow: "hidden",
+            backdropFilter: "blur(16px)",
+            background:
+              "linear-gradient(180deg,#17203b 0%,#111827 100%)",
           }}
         >
-          <Box>
-            <Stack direction="row" sx={{ alignItems: "center" }} spacing={2}>
-              <Box
-                component="img"
-                src="/orbit_planner_logo.png"
-                alt="Orbit Planner"
-                sx={{
-                  width: 60,
-                  height: 60,
-                  objectFit: "contain",
-                  filter: `
-                    drop-shadow(0 0 10px rgba(96, 165, 250, 0.4))
-                    drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))
-                  `,
-                }}
-              />
-
-              <Typography
-                variant="h1"
-                sx={{
-                  fontSize: { xs: 38, md: 56 },
-                  fontWeight: 900,
-                  color: "#fff",
-                  letterSpacing: "-2px",
-                  lineHeight: 1,
-                }}
-              >
-                Life Planner
-              </Typography>
-            </Stack>
-
-            <Typography sx={{ color: "#8fa0bf", mt: 1, fontSize: 16 }}>
-              Do life with focus, memory and intention.
-            </Typography>
-          </Box>
-        </Stack>
-
-        <Card sx={{ ...cardSx, mb: 4 }}>
           <CardContent
             sx={{
-              p: { xs: 2, md: 3 },
-              overflowX: "auto",
+              p: { xs: 2.5, md: 3.5 },
             }}
           >
             <Box
@@ -276,13 +246,27 @@ const LifeDashboard = () => {
 
         <Card sx={cardSx}>
           <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <Typography sx={{ fontSize: 24, fontWeight: 900, color: "#fff" }}>
-              Today Timeline
-            </Typography>
+            <Stack spacing={0.5} sx={{ mb: 4 }}>
+              <Typography
+                sx={{
+                  fontSize: 28,
+                  fontWeight: 900,
+                  color: "#f8fafc",
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                Today Timeline
+              </Typography>
 
-            <Typography sx={{ color: "#8fa0bf", mt: 1, mb: 4 }}>
-              Your schedule organised by time.
-            </Typography>
+              <Typography
+                sx={{
+                  color: "#94a3b8",
+                  fontSize: 15,
+                }}
+              >
+                Your day, organised in chronological order.
+              </Typography>
+            </Stack>
 
             {todayEvents.length === 0 ? (
               <Typography sx={{ color: "#64748b" }}>
@@ -387,15 +371,16 @@ const LifeDashboard = () => {
                           sx={{
                             p: 2,
                             borderRadius: 3,
-                            background: "#0f172a",
-                            border: "1px solid #334155",
+                            background: "linear-gradient(145deg,#17203b,#0f172a)",
+                            border: "1px solid rgba(255,255,255,.06)",
+                            boxShadow:"0 12px 30px rgba(0,0,0,.30)",
                             transition: "all 0.2s ease",
                             cursor: "pointer",
 
                             "&:hover": {
-                              transform: "translateY(-2px)",
-                              borderColor: "#3b82f6",
-                              background: "#1e293b",
+                              transform:"translateY(-6px)",
+                              boxShadow:"0 25px 45px rgba(37,99,235,.25)",
+                              borderColor:"#3b82f6",
                             },
                           }}
                           onClick={() => {

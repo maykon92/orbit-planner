@@ -22,10 +22,6 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutlineSharp";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import MessageIcon from "@mui/icons-material/Message";
 import EditIcon from "@mui/icons-material/Edit";
-import PhotoIcon from "@mui/icons-material/Photo";
-import MoodIcon from "@mui/icons-material/Mood";
-import PlaceIcon from "@mui/icons-material/Place";
-import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 
 import MainLayout from "../../layouts/MainLayout";
 import { getImageUrl } from "../../utils/getImageUrl";
@@ -46,6 +42,7 @@ import ProfileSearch from "../../components/ProfileSearch";
 import SidebarCard from "../../components/SidebarCard";
 import NotificationList from "../../components/NotificationList";
 import UpcomingEvents from "../../components/UpcomingEvents";
+import PageHeader from "../../components/layout/PageHeader";
 
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
@@ -228,100 +225,42 @@ const Feed = () => {
           pt: 5,
         }}
       >
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={3}
-          sx={{ 
-            mb: 4,
-            justifyContent:"space-between",
-            alignItems: { xs: "flex-start", md: "center" },
-           }}
-        >
-          <Box>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <Box
-                component="img"
-                src="/orbit_planner_logo.png"
-                alt="Orbit Planner"
+        <PageHeader
+          title="Orbit Feed"
+          subtitle="Stay connected and share your moments"
+          actions={
+            <>
+              <Box sx={{ width: { xs: "100%", sm: 320 } }}>
+                <ProfileSearch />
+              </Box>
+
+              <Button
+                variant="outlined"
+                startIcon={<MessageIcon />}
+                onClick={() => navigate("/messages")}
                 sx={{
-                  width: 60,
-                  height: 60,
-                  objectFit: "contain",
-                  filter: `
-                    drop-shadow(0 0 10px rgba(96, 165, 250, 0.4))
-                    drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))
-                  `,
-                }}
-              />
-              <Typography
-                variant="h1"
-                sx={{
-                  fontSize: { xs: 38, md: 52 },
-                  fontWeight: 900,
-                  color: "#fff",
-                  letterSpacing: "-1.5px",
-                  lineHeight: 1,
+                  height: 46,
+                  minWidth: 145,
+                  px: 2.5,
+                  borderRadius: "14px",
+                  color: "#f8fafc",
+                  borderColor: "rgba(96,165,250,.55)",
+                  fontWeight: 800,
+                  textTransform: "none",
+                  background: "rgba(15,23,42,.55)",
+                  "&:hover": {
+                    borderColor: "#60a5fa",
+                    background: "rgba(37,99,235,.14)",
+                  },
                 }}
               >
-                Orbit Feed
-              </Typography>
-            </Box>
+                Message
+              </Button>
 
-            <Typography
-              sx={{
-                color: "#8fa0bf",
-                mt: 1,
-                fontSize: 16,
-              }}
-            >
-              Stay connected and share your moments
-            </Typography>
-          </Box>
-
-          <Stack
-            direction="row"
-            spacing={2}
-            sx={{
-              flexShrink: 0,
-              alignItems: "left"
-            }}
-          >
-            <Box sx={{ width: 300 }}>
-              <ProfileSearch />
-            </Box>
-
-            <Button
-              variant="outlined"
-              startIcon={<MessageIcon />}
-              onClick={() => navigate("/messages")}
-              sx={{
-                height: 48,
-                minWidth: 150,
-                px: 3,
-                borderRadius: "14px",
-                color: "#fff",
-                borderColor: "rgba(72, 127, 255, 0.8)",
-                fontWeight: 800,
-                background: "rgba(15, 23, 42, 0.6)",
-                flexShrink: 0,
-                "&:hover": {
-                  borderColor: "#5b8cff",
-                  background: "rgba(47, 109, 246, 0.16)",
-                },
-              }}
-            >
-              Message
-            </Button>
-
-            <NotificationBell />
-          </Stack>
-        </Stack>
+              <NotificationBell />
+            </>
+          }
+        />
 
         <Paper
           elevation={0}

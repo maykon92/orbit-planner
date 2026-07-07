@@ -29,6 +29,7 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
 import MainLayout from "../../layouts/MainLayout";
+import { orbitTextFieldSx, orbitMenuProps, orbitSelectSx } from "../../theme/orbitInputStyles";
 import {
   getFinanceWorkspaces,
   createFinanceWorkspace,
@@ -1175,7 +1176,12 @@ const Finance = () => {
                 label="Workspace"
                 value={selectedWorkspaceId}
                 onChange={(e) => setSelectedWorkspaceId(e.target.value)}
-                sx={fieldSx}
+                sx={orbitSelectSx}
+                slotProps={{
+                  select: {
+                    MenuProps: orbitMenuProps,
+                  },
+                }}
               >
                 {workspaces.map((workspace) => (
                   <MenuItem key={workspace._id} value={workspace._id}>
@@ -1190,7 +1196,12 @@ const Finance = () => {
                 label="View Mode"
                 value={viewMode}
                 onChange={(e) => setViewMode(e.target.value)}
-                sx={fieldSx}
+                sx={orbitSelectSx}
+                slotProps={{
+                  select: {
+                    MenuProps: orbitMenuProps,
+                  },
+                }}
               >
                 <MenuItem value="week">This Week</MenuItem>
                 <MenuItem value="month">This Month</MenuItem>
@@ -1347,7 +1358,12 @@ const Finance = () => {
                   label="Time Range"
                   value={periodFilter}
                   onChange={(e) => setPeriodFilter(e.target.value)}
-                  sx={fieldSx}
+                  sx={orbitSelectSx}
+                  slotProps={{
+                    select: {
+                      MenuProps: orbitMenuProps,
+                    },
+                  }}
                 >
                   <MenuItem value="all">All Time</MenuItem>
                   <MenuItem value="week">This Week</MenuItem>
@@ -1361,7 +1377,12 @@ const Finance = () => {
                   label="Category"
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  sx={fieldSx}
+                  sx={orbitSelectSx}
+                  slotProps={{
+                    select: {
+                      MenuProps: orbitMenuProps,
+                    },
+                  }}
                 >
                   <MenuItem value="all">All Categories</MenuItem>
                   <MenuItem value="food">Food</MenuItem>

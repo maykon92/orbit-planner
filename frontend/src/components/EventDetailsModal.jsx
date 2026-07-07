@@ -15,6 +15,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
 
+import { formatEventDate } from "../utils/formatters";
+
 const EventDetailsModal = ({ open, onClose, event }) => {
     if (!event) return null;
 
@@ -54,6 +56,16 @@ const EventDetailsModal = ({ open, onClose, event }) => {
     );
   };
 
+  const formatEventDate = (date) => {
+    if (!date) return "";
+
+    const parsedDate = date instanceof Date ? date : new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) return "";
+
+    return parsedDate.toLocaleDateString("en-AU");
+  };
+
   return (
     <Dialog
       open={open}
@@ -89,26 +101,26 @@ const EventDetailsModal = ({ open, onClose, event }) => {
                 }}
             >
                 <Box>
-                <Typography
-                    sx={{
-                    fontSize: 30,
-                    fontWeight: 900,
-                    mb: 1,
-                    }}
-                >
-                    {event.title}
-                </Typography>
+                    <Typography
+                        sx={{
+                            fontSize: 30,
+                            fontWeight: 900,
+                            mb: 1,
+                        }}
+                    >
+                        {event.title}
+                    </Typography>
 
-                <Chip
-                    label={type}
-                    size="small"
-                    sx={{
-                    background: "rgba(96,165,250,.15)",
-                    color: "#bfdbfe",
-                    fontWeight: 700,
-                    textTransform: "capitalize",
-                    }}
-                />
+                    <Chip
+                        label={type}
+                        size="small"
+                        sx={{
+                            background: "rgba(96,165,250,.15)",
+                            color: "#bfdbfe",
+                            fontWeight: 700,
+                            textTransform: "capitalize",
+                        }}
+                    />
                 </Box>
 
                 <IconButton
@@ -137,37 +149,34 @@ const EventDetailsModal = ({ open, onClose, event }) => {
             }}
         >
             <Typography
-            sx={{
-                mb: 3,
-                color: "#cbd5e1",
-                lineHeight: 1.7,
-            }}
+                sx={{
+                    mb: 3,
+                    color: "#cbd5e1",
+                    lineHeight: 1.7,
+                }}
             >
-            {event.extendedProps?.description || "No description provided."}
+                {event.extendedProps?.description || "No description provided."}
             </Typography>
 
             <Box>
-            <DetailRow label="Destination" value={itemData.destination} />
-            <DetailRow
-                label="Budget"
-                value={itemData.budget ? `$${itemData.budget}` : null}
-            />
-            <DetailRow label="Author" value={itemData.author} />
-            <DetailRow label="Platform" value={itemData.platform} />
-            <DetailRow label="Genre" value={itemData.genre} />
-            <DetailRow label="Priority" value={itemData.priority} />
-            <DetailRow label="Duration" value={itemData.duration} />
+                <DetailRow label="Destination" value={itemData.destination} />
+                <DetailRow
+                    label="Budget"
+                    value={itemData.budget ? `$${itemData.budget}` : null}
+                />
+                <DetailRow label="Author" value={itemData.author} />
+                <DetailRow label="Platform" value={itemData.platform} />
+                <DetailRow label="Genre" value={itemData.genre} />
+                <DetailRow label="Priority" value={itemData.priority} />
+                <DetailRow label="Duration" value={itemData.duration} />
             </Box>
 
             <Box sx={{ mt: 3 }}>
-            <DetailRow label="Start" value={event.start?.toLocaleDateString()} />
-            <DetailRow
-                label="End"
-                value={
-                event.end?.toLocaleDateString() ||
-                event.start?.toLocaleDateString()
-                }
-            />
+                <DetailRow label="Start" value={formatEventDate(event.start)} />
+                <DetailRow
+                    label="End"
+                    value={formatEventDate(event.end) || formatEventDate(event.start)}
+                />
             </Box>
         </DialogContent>
 

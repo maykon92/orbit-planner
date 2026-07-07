@@ -48,3 +48,49 @@ export const readConversationMessages = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+import {
+  updateUserMessage,
+  deleteUserMessage,
+} from "../services/messageService.js";
+
+export const updateMessage = async (req, res) => {
+  try {
+    const { text } = req.body;
+
+    if (!text?.trim()) {
+      return res.status(400).json({ message: "Message text is required." });
+    }
+
+    const message = await updateUserMessage({
+      messageId: req.params.messageId,
+      userId: req.user._id,
+      text,
+    });
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found." });
+    }
+
+    res.json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteMessage = async (req, res) => {
+  try {
+    const message = await deleteUserMessage({
+      messageId: req.params.messageId,
+      userId: req.user._id,
+    });
+
+    if (!message) {
+      return res.status(404).json({ message: "Message not found." });
+    }
+
+    res.json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

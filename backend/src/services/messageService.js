@@ -69,3 +69,32 @@ export const markConversationMessagesAsRead = async ({
     .populate("senderId", "name avatar email")
     .sort({ createdAt: 1 });
 };
+
+export const updateUserMessage = async ({ messageId, userId, text }) => {
+  return await Message.findOneAndUpdate(
+    {
+      _id: messageId,
+      senderId: userId,
+    },
+    {
+      text,
+      editedAt: new Date(),
+    },
+    { new: true }
+  ).populate("senderId", "name avatar email");
+};
+
+export const deleteUserMessage = async ({ messageId, userId }) => {
+  return await Message.findOneAndUpdate(
+    {
+      _id: messageId,
+      senderId: userId,
+    },
+    {
+      isDeleted: true,
+      text: "This message was deleted.",
+      deletedAt: new Date(),
+    },
+    { new: true }
+  ).populate("senderId", "name avatar email");
+};

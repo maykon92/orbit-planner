@@ -20,6 +20,19 @@ const messageSchema = new mongoose.Schema(
       trim: true,
     },
 
+    editedAt: {
+      type: Date,
+    },
+
+    deletedAt: {
+      type: Date,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
     readBy: [
       {
         type: mongoose.Schema.Types.ObjectId,

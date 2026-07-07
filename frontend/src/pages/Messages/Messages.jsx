@@ -10,10 +10,16 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  Menu,
+  MenuItem,
+  Button,
 } from "@mui/material";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SendIcon from "@mui/icons-material/Send";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import MainLayout from "../../layouts/MainLayout";
 import { useAuth } from "../../contexts/AuthContext";
@@ -26,6 +32,8 @@ import {
 import {
   getMessages,
   markMessagesAsRead,
+  updateMessage,
+  deleteMessage,
 } from "../../services/messageService";
 
 const formatMessageTime = (date) => {
@@ -78,6 +86,10 @@ const Messages = () => {
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [messageMenuAnchor, setMessageMenuAnchor] = useState(null);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editingText, setEditingText] = useState("");
 
   const typingTimeout = useRef(null);
   const messagesEndRef = useRef(null);
@@ -358,6 +370,59 @@ const Messages = () => {
     };
   }, [user?._id]);
 
+  const handleOpenMessageMenu = (event, message) => {
+    event.stopPropagation();
+    setSelectedMessage(message);
+    setMessageMenuAnchor(event.currentTarget);
+  };
+
+  const handleCloseMessageMenu = () => {
+    setSelectedMessage(null);
+    setMessageMenuAnchor(null);
+  };
+
+  const handleStartEditMessage = () => {
+    if (!selectedMessage) return;
+
+    setEditingMessageId(selectedMessage._id);
+    setEditingText(selectedMessage.text);
+    setMessageMenuAnchor(null);
+  };
+
+  const handleCancelEditMessage = () => {
+    setEditingMessageId(null);
+    setEditingText("");
+  };
+
+  const handleSaveEditMessage = async () => {
+    if (!editingMessageId || !editingText.trim()) return;
+
+    const updated = await updateMessage(editingMessageId, editingText);
+
+    setMessages((prev) =>
+      prev.map((message) =>
+        message._id === updated._id ? updated : message
+      )
+    );
+
+    setEditingMessageId(null);
+    setEditingText("");
+  };
+
+  const handleDeleteSelectedMessage = async () => {
+    if (!selectedMessage) return;
+
+    const deleted = await deleteMessage(selectedMessage._id);
+
+    setMessages((prev) =>
+      prev.map((message) =>
+        message._id === deleted._id ? deleted : message
+      )
+    );
+
+    handleCloseMessageMenu();
+  };
+
   return (
     <MainLayout>
       <Box sx={{ mb: 4 }}>
@@ -610,6 +675,7 @@ const Messages = () => {
                       (id) => id.toString() !== user?._id?.toString()
                     );
 
+                  const isEditing = editingMessageId === message._id;
                   const previous = messages[index - 1];
 
                   const showDay =
@@ -650,56 +716,138 @@ const Messages = () => {
                           justifyContent: isMine ? "flex-end" : "flex-start",
                         }}
                       >
-                        <Box
-                          sx={{
-                            maxWidth: "72%",
-                            px: 2,
-                            py: 1.4,
-                            borderRadius: 3,
-                            background: isMine ? "#2563eb" : "#111827",
-                            color: "#fff",
-                            border: isMine ? "none" : "1px solid #1f2937",
-                          }}
-                        >
-                          <Typography
+                          <Box
                             sx={{
-                              whiteSpace: "pre-wrap",
-                              wordBreak: "break-word",
-                              lineHeight: 1.6,
+                              mb: 2,
+                              display: "flex",
+                              justifyContent: isMine ? "flex-end" : "flex-start",
+                              alignItems: "center",
+                              gap: 1,
                             }}
                           >
-                            {message.text}
-                          </Typography>
+                            {isMine && !message.isDeleted && !isEditing && (
+                              <IconButton
+                                size="small"
+                                onClick={(event) => handleOpenMessageMenu(event, message)}
+                                sx={{
+                                  color: "#94a3b8",
+                                  opacity: 0.7,
+                                  "&:hover": {
+                                    opacity: 1,
+                                    background: "rgba(255,255,255,.06)",
+                                  },
+                                }}
+                              >
+                                <MoreVertIcon fontSize="small" />
+                              </IconButton>
+                            )}
 
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              display: "block",
-                              mt: 1,
-                              fontSize: 11,
-                              color: isMine
-                                ? "rgba(255,255,255,.75)"
-                                : "#94a3b8",
-                              textAlign: "right",
-                            }}
-                          >
-                            {formatMessageTime(message.createdAt)}
-                          </Typography>
+                            <Box
+                              sx={{
+                                maxWidth: "72%",
+                                px: 2,
+                                py: 1.4,
+                                borderRadius: 3,
+                                background: isMine ? "#2563eb" : "#111827",
+                                color: "#fff",
+                                border: isMine ? "none" : "1px solid #1f2937",
+                              }}
+                            >
+                            {isEditing ? (
+                              <Box>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  value={editingText}
+                                  onChange={(e) => setEditingText(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !e.shiftKey) {
+                                      e.preventDefault();
+                                      handleSaveEditMessage();
+                                    }
 
-                          {isMine && isLastOwnMessage && (
+                                    if (e.key === "Escape") {
+                                      handleCancelEditMessage();
+                                    }
+                                  }}
+                                  sx={{
+                                    input: { color: "#fff" },
+                                    "& .MuiOutlinedInput-root": {
+                                      background: "rgba(15,23,42,.75)",
+                                      borderRadius: 2,
+                                    },
+                                  }}
+                                />
+
+                                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                                  <Button size="small" variant="contained" onClick={handleSaveEditMessage}>
+                                    Save
+                                  </Button>
+
+                                  <Button size="small" onClick={handleCancelEditMessage} sx={{ color: "#cbd5e1" }}>
+                                    Cancel
+                                  </Button>
+                                </Stack>
+                              </Box>
+                            ) : (
+                              <Typography
+                                sx={{
+                                  whiteSpace: "pre-wrap",
+                                  wordBreak: "break-word",
+                                  lineHeight: 1.6,
+                                  fontStyle: message.isDeleted ? "italic" : "normal",
+                                  color: message.isDeleted ? "#94a3b8" : "#fff",
+                                }}
+                              >
+                                {message.text}
+                              </Typography>
+                            )}
+
                             <Typography
                               variant="caption"
                               sx={{
                                 display: "block",
-                                mt: 0.4,
-                                fontSize: 10,
-                                color: "rgba(255,255,255,.72)",
+                                mt: 1,
+                                fontSize: 11,
+                                color: isMine
+                                  ? "rgba(255,255,255,.75)"
+                                  : "#94a3b8",
                                 textAlign: "right",
                               }}
                             >
-                              {isSeen ? "Seen" : "Sent"}
+                              {formatMessageTime(message.createdAt)}
                             </Typography>
-                          )}
+
+                            {message.editedAt && !message.isDeleted && (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  display: "block",
+                                  mt: 0.3,
+                                  fontSize: 10,
+                                  color: isMine ? "rgba(255,255,255,.65)" : "#94a3b8",
+                                  textAlign: "right",
+                                }}
+                              >
+                                edited
+                              </Typography>
+                            )}
+
+                            {isMine && isLastOwnMessage && (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  display: "block",
+                                  mt: 0.4,
+                                  fontSize: 10,
+                                  color: "rgba(255,255,255,.72)",
+                                  textAlign: "right",
+                                }}
+                              >
+                                {isSeen ? "Seen" : "Sent"}
+                              </Typography>
+                            )}
+                          </Box>
                         </Box>
                       </Box>
                     </Box>
@@ -819,6 +967,31 @@ const Messages = () => {
           )}
         </Box>
       </Box>
+      <Menu
+        anchorEl={messageMenuAnchor}
+        open={Boolean(messageMenuAnchor)}
+        onClose={handleCloseMessageMenu}
+        slotProps={{
+          paper: {
+            sx: {
+              background: "#0f172a",
+              color: "#f8fafc",
+              border: "1px solid #1f2937",
+              borderRadius: 3,
+            },
+          },
+        }}
+      >
+        <MenuItem onClick={handleStartEditMessage}>
+          <EditIcon fontSize="small" style={{ marginRight: 8 }} />
+          Edit
+        </MenuItem>
+
+        <MenuItem onClick={handleDeleteSelectedMessage} sx={{ color: "#fca5a5" }}>
+          <DeleteIcon fontSize="small" style={{ marginRight: 8 }} />
+          Delete
+        </MenuItem>
+      </Menu>
     </MainLayout>
   );
 };

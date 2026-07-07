@@ -36,7 +36,7 @@ import CreateTabModal from "../components/CreateTabModal";
 import { getImageUrl } from "../utils/getImageUrl";
 import AIChatButton from "../components/AI/AIChatButton";
 import AIChatModal from "../components/AI/AIChatModal";
-import NotificationList from "../components/NotificationList";
+import OrbitNotificationHub from "../components/notification/OrbitNotificationHub";
 
 const drawerWidth = 270;
 
@@ -114,27 +114,35 @@ const MainLayout = ({ children }) => {
             <Box
                 sx={{
                     display: "flex",
-                    alignitems:"center",
+                    alignItems: "center",
+                    gap: 2,
+                    minHeight: 48,
+                    borderBottom: "1px solid #1f2937",
+                    mb: 4,
                 }}
             >
                 <Box
-                    component="img"
-                    src="/orbit_planner_logo.png"
-                    alt="Orbit Planner"
                     sx={{
-                        width: 30,
-                        height: 30,
-                        marginRight: 2,
-                        objectFit: "contain",
-                        filter: `
-                        drop-shadow(0 0 10px rgba(96, 165, 250, 0.4))
-                        drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))
-                        `,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 42,
+                        height: 42,
                     }}
-                />
-                <Typography variant="h5" fontWeight="bold" sx={{ mb: 4 }}>
+                >
+                    <OrbitNotificationHub logoSize={30}/>
+                </Box>
+
+                <Typography
+                    sx={{
+                        fontWeight: 800,
+                        fontSize: 22,
+                        lineHeight: 1,
+                    }}
+                >
                     Orbit Planner
                 </Typography>
+
             </Box>
 
             <Typography

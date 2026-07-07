@@ -17,6 +17,10 @@ import { createPost } from "../services/postService";
 import { getTabs } from "../services/tabService";
 import { getImageUrl } from "../utils/getImageUrl";
 import { useAuth } from "../contexts/AuthContext";
+import {
+  orbitFormSelectSx,
+  orbitMenuProps,
+} from "../theme/orbitInputStyles";
 
 const CreatePostModal = ({ open, onClose, onCreated }) => {
   const { user } = useAuth();
@@ -217,35 +221,10 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
           label="Visibility"
           value={form.visibility}
           onChange={(e) => setForm({ ...form, visibility: e.target.value })}
-          SelectProps={{
-            MenuProps: {
-              paperprops: {
-                sx: {
-                  background: "#0f172a",
-                  color: "#f8fafc",
-                  border: "1px solid #1f2937",
-                },
-              },
-            },
-          }}
-          sx={{
-            mb: 2,
-            input: { color: "#f8fafc" },
-            label: { color: "#94a3b8" },
-            "& .MuiOutlinedInput-root": {
-              background: "#111827",
-              borderRadius: 3,
-              color: "#f8fafc",
-              "& fieldset": { borderColor: "#1f2937" },
-            },
-            "& .MuiInputLabel-root": {
-              color: "#94a3b8",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "#60a5fa",
-            },
-            "& .MuiSelect-icon": {
-              color: "#94a3b8",
+          sx={orbitFormSelectSx}
+          slotProps={{
+            select: {
+              MenuProps: orbitMenuProps,
             },
           }}
         >
@@ -265,23 +244,10 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
               itemId: "",
             })
           }
-          sx={{
-            mb: 2,
-            label: { color: "#94a3b8" },
-            "& .MuiOutlinedInput-root": {
-              background: "#111827",
-              borderRadius: 3,
-              color: "#f8fafc",
-              "& fieldset": { borderColor: "#1f2937" },
-            },
-            "& .MuiInputLabel-root": {
-              color: "#94a3b8",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "#60a5fa",
-            },
-            "& .MuiSelect-icon": {
-              color: "#94a3b8",
+          sx={orbitFormSelectSx}
+          slotProps={{
+            select: {
+              MenuProps: orbitMenuProps,
             },
           }}
         >
@@ -300,23 +266,10 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
             label="Related Item"
             value={form.itemId}
             onChange={(e) => setForm({ ...form, itemId: e.target.value })}
-            sx={{
-              mb: 2,
-              label: { color: "#94a3b8" },
-              "& .MuiOutlinedInput-root": {
-                background: "#111827",
-                borderRadius: 3,
-                color: "#f8fafc",
-                "& fieldset": { borderColor: "#1f2937" },
-              },
-              "& .MuiInputLabel-root": {
-                color: "#94a3b8",
-              },
-              "& .MuiInputLabel-root.Mui-focused": {
-                color: "#60a5fa",
-              },
-              "& .MuiSelect-icon": {
-                color: "#94a3b8",
+            sx={orbitFormSelectSx}
+            slotProps={{
+              select: {
+                MenuProps: orbitMenuProps,
               },
             }}
           >
