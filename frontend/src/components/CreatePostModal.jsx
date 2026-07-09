@@ -4,10 +4,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
   MenuItem,
   Box,
+  Button,
   Typography,
   Avatar,
 } from "@mui/material";
@@ -21,6 +21,7 @@ import {
   orbitFormSelectSx,
   orbitMenuProps,
 } from "../theme/orbitInputStyles";
+import OrbitButton from "./ui/OrbitButton";
 
 const CreatePostModal = ({ open, onClose, onCreated }) => {
   const { user } = useAuth();
@@ -282,23 +283,13 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
           </TextField>
         )}
 
-        <Button
-          variant="outlined"
+        <OrbitButton
+          variant="secondary"
           component="label"
-          sx={{
-            borderColor: "#334155",
-            color: "#e2e8f0",
-            borderRadius: 3,
-            mb: 2,
-            "&:hover": {
-              borderColor: "#60a5fa",
-              background: "rgba(37,99,235,0.1)",
-            },
-          }}
         >
           {uploading ? "Uploading..." : "Upload Image"}
           <input hidden type="file" accept="image/*" onChange={handleUpload} />
-        </Button>
+        </OrbitButton>
 
         {preview && (
           <Box
@@ -324,22 +315,20 @@ const CreatePostModal = ({ open, onClose, onCreated }) => {
           background: "#0f172a",
         }}
       >
-        <Button onClick={onClose} sx={{ color: "#94a3b8" }}>
+        <OrbitButton 
+          variant="danger"
+          onClick={onClose}
+        >
           Cancel
-        </Button>
+        </OrbitButton>
 
-        <Button
-          variant="contained"
+        <OrbitButton
+          variant="primary"
           onClick={handleSubmit}
           disabled={uploading || publishing}
-          sx={{
-            borderRadius: 3,
-            background: uploading || publishing ? "#334155" : "#2563eb",
-            fontWeight: 700,
-          }}
         >
           {uploading ? "Uploading image..." : publishing ? "Publishing..." : "Publish"}
-        </Button>
+        </OrbitButton>
       </DialogActions>
     </Dialog>
   );

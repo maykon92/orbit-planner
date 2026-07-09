@@ -3,7 +3,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
   MenuItem,
   Checkbox,
@@ -29,9 +28,9 @@ import {
   orbitDialogTitleSx,
   orbitDialogContentSx,
   orbitDialogActionsSx,
-  orbitPrimaryButtonSx,
-  orbitSecondaryButtonSx,
 } from "../theme";
+
+import OrbitButton from "./ui/OrbitButton";
 
 const CreateItemModal = ({
   open,
@@ -458,35 +457,32 @@ const CreateItemModal = ({
                 <MenuItem value="private">Private</MenuItem>
               </TextField>
 
-              <Button
-                variant="outlined"
+              <OrbitButton
+                variant="secondary"
                 component="label"
-                sx={{
-                  ...orbitSecondaryButtonSx,
-                  mb: 2,
-                }}
               >
                 {uploading ? "Uploading..." : "Upload Image"}
                 <input hidden type="file" accept="image/*" onChange={handleUpload} />
-              </Button>
+              </OrbitButton>
             </>
           )}
         </Box>
       </DialogContent>
 
       <DialogActions sx={orbitDialogActionsSx}>
-        <Button onClick={onClose} sx={{ color: "#94a3b8", fontWeight: 800 }}>
+        <OrbitButton 
+          onClick={onClose}
+          variant="danger"
+        >
           Cancel
-        </Button>
+        </OrbitButton>
 
-        <Button
-          variant="contained"
+        <OrbitButton
           onClick={handleSubmit}
           disabled={uploading}
-          sx={orbitPrimaryButtonSx}
         >
           Create
-        </Button>
+        </OrbitButton>
       </DialogActions>
     </Dialog>
   );

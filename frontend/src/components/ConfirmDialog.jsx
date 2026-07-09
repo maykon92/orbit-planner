@@ -7,6 +7,8 @@ import {
   Typography,
 } from "@mui/material";
 
+import OrbitButton from "./ui/OrbitButton";
+
 const ConfirmDialog = ({
   open,
   title = "Confirm action",
@@ -43,18 +45,17 @@ const ConfirmDialog = ({
       </DialogContent>
 
       <DialogActions sx={{ p: 3 }}>
-        <Button onClick={onClose} sx={{ color: "#94a3b8", fontWeight: 800 }}>
+        <OrbitButton onClick={onClose} variant="danger">
           {cancelText}
-        </Button>
+        </OrbitButton>
 
-        <Button
-          variant="contained"
+        <OrbitButton
+          variant="primary"
           color={danger ? "error" : "primary"}
           onClick={onConfirm}
-          sx={{ fontWeight: 900, borderRadius: 3 }}
         >
           {confirmText}
-        </Button>
+        </OrbitButton>
       </DialogActions>
     </Dialog>
   );

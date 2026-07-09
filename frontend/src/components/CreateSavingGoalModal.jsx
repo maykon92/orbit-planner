@@ -3,7 +3,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
 } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -11,6 +10,7 @@ import {
   createSavingGoal,
   updateSavingGoal,
 } from "../services/financeService";
+import OrbitButton from "./ui/OrbitButton";
 
 const getInitialForm = () => ({
   title: "",
@@ -175,13 +175,13 @@ const CreateSavingGoalModal = ({
           p: 3,
         }}
       >
-        <Button onClick={onClose} sx={{ color: "#94a3b8", fontWeight: 800 }}>
+        <OrbitButton onClick={onClose} variant="danger">
           Cancel
-        </Button>
+        </OrbitButton>
 
-        <Button variant="contained" onClick={handleSubmit}>
+        <OrbitButton variant="primary" onClick={handleSubmit}>
           {isEditing ? "Update Goal" : "Create Goal"}
-        </Button>
+        </OrbitButton>
       </DialogActions>
     </Dialog>
   );

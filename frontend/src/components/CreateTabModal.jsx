@@ -3,7 +3,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
   MenuItem,
 } from "@mui/material";
@@ -16,8 +15,9 @@ import {
   orbitDialogTitleSx,
   orbitDialogContentSx,
   orbitDialogActionsSx,
-  orbitPrimaryButtonSx,
 } from "../theme";
+
+import OrbitButton from "./ui/OrbitButton";
 
 const tabTypes = [
   "agenda",
@@ -82,17 +82,16 @@ const CreateTabModal = ({ open, onClose, onCreated }) => {
       </DialogContent>
 
       <DialogActions sx={orbitDialogActionsSx}>
-        <Button onClick={onClose} sx={{ color: "#94a3b8", fontWeight: 800 }}>
+        <OrbitButton onClick={onClose} variant="danger">
           Cancel
-        </Button>
+        </OrbitButton>
 
-        <Button
-          variant="contained"
+        <OrbitButton
+          variant="primary"
           onClick={handleSubmit}
-          sx={orbitPrimaryButtonSx}
         >
           Create
-        </Button>
+        </OrbitButton>
       </DialogActions>
     </Dialog>
   );

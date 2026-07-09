@@ -6,15 +6,12 @@ import {
   Typography,
   Chip,
   Box,
-  Button,
   Stack,
   IconButton
 } from "@mui/material";
 
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import CloseIcon from "@mui/icons-material/Close";
-
+import OrbitButton from "./ui/OrbitButton";
 import { formatEventDate } from "../utils/formatters";
 
 const EventDetailsModal = ({ open, onClose, event }) => {
@@ -190,16 +187,12 @@ const EventDetailsModal = ({ open, onClose, event }) => {
 
             <Box sx={{ flex: 1 }} />
 
-            <Button
+            <OrbitButton
+                variant="danger"
                 onClick={onClose}
-                sx={{
-                    color: "#94a3b8",
-                    fontWeight: 800,
-                    textTransform: "none",
-                }}
             >
                 Cancel
-            </Button>
+            </OrbitButton>
         </DialogActions>
     </Dialog>
   );

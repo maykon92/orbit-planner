@@ -26,19 +26,21 @@ const InviteMemberSection = ({ workspace, onUpdated }) => {
         placeholder="Search user..."
         value={query}
         onChange={(e) => handleSearch(e.target.value)}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon sx={{ color: "#94a3b8" }} />
-            </InputAdornment>
-          ),
-          endAdornment: query && (
-            <InputAdornment position="end">
-              <IconButton onClick={clearSearch} sx={{ color: "#94a3b8" }}>
-                <CloseIcon />
-              </IconButton>
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: "#94a3b8" }} />
+              </InputAdornment>
+            ),
+            endAdornment: query ? (
+              <InputAdornment position="end">
+                <IconButton onClick={clearSearch} sx={{ color: "#94a3b8" }}>
+                  <CloseIcon />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
+          },
         }}
         sx={{
           "& .MuiOutlinedInput-root": {

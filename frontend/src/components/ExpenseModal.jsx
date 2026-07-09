@@ -3,12 +3,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
   MenuItem,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { createExpense, updateExpense } from "../services/financeService";
+import OrbitButton from "./ui/OrbitButton";
 
 const getToday = () => new Date().toISOString().split("T")[0];
 
@@ -83,11 +83,13 @@ const ExpenseModal = ({ open, onClose, onSaved, expense = null, workspaceId }) =
   };
 
   const menuProps = {
-    PaperProps: {
-      sx: {
-        background: "#0f172a",
-        color: "#f8fafc",
-        border: "1px solid #1f2937",
+    slotProps: {
+      paper: {
+        sx: {
+          background: "#0f172a",
+          color: "#f8fafc",
+          border: "1px solid #1f2937",
+        },
       },
     },
   };
@@ -229,13 +231,19 @@ const ExpenseModal = ({ open, onClose, onSaved, expense = null, workspaceId }) =
           p: 3,
         }}
       >
-        <Button onClick={onClose} sx={{ color: "#94a3b8" }}>
+        <OrbitButton 
+          onClick={onClose} 
+          variant="danger"
+        >
           Cancel
-        </Button>
+        </OrbitButton>
 
-        <Button variant="contained" onClick={handleSubmit}>
+        <OrbitButton 
+          variant="primary"  
+          onClick={handleSubmit}
+        >
           {isEditing ? "Update" : "Save"}
-        </Button>
+        </OrbitButton>
       </DialogActions>
     </Dialog>
   );

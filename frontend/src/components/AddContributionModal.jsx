@@ -3,11 +3,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
 } from "@mui/material";
 import { useState } from "react";
 import { createContribution } from "../services/financeService";
+import OrbitButton from "./ui/OrbitButton";
 
 const AddContributionModal = ({
   open,
@@ -155,11 +155,13 @@ const AddContributionModal = ({
           p: 3,
         }}
       >
-        <Button onClick={onClose}>Cancel</Button>
+        <OrbitButton onClick={onClose} variant="danger">
+          Cancel
+        </OrbitButton>
 
-        <Button variant="contained" onClick={handleSubmit}>
+        <OrbitButton variant="primary" onClick={handleSubmit}>
           Add
-        </Button>
+        </OrbitButton>
       </DialogActions>
     </Dialog>
   );

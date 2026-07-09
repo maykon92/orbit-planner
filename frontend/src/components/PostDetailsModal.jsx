@@ -5,7 +5,6 @@ import {
   Avatar,
   IconButton,
   TextField,
-  Button,
   Chip,
 } from "@mui/material";
 
@@ -15,6 +14,7 @@ import ChatBubbleOutlineSharpIcon from "@mui/icons-material/ChatBubbleOutlineSha
 
 import { useState } from "react";
 import { getImageUrl } from "../utils/getImageUrl";
+import OrbitButton from "./ui/OrbitButton";
 
 const PostDetailsModal = ({
   open,
@@ -175,30 +175,32 @@ const PostDetailsModal = ({
                     : null;
 
                 return (
-                    <Box
+                  <Box
                     key={comment._id || index}
                     sx={{
                         display: "flex",
                         gap: 1.5,
                         mb: 2,
                     }}
-                    >
+                  >
                     <Avatar
-                        src={commentUser?.avatar ? getImageUrl(commentUser.avatar) : ""}
-                        sx={{ width: 34, height: 34 }}
+                      src={
+                        commentUser?.avatar ? getImageUrl(commentUser.avatar) : ""
+                      }
+                      sx={{ width: 34, height: 34 }}
                     >
-                        {commentUser?.name?.charAt(0) || "U"}
+                      {commentUser?.name?.charAt(0) || "U"}
                     </Avatar>
 
                     <Typography sx={{ color: "#f8fafc", fontSize: 14 }}>
-                        <Box component="span" sx={{ fontWeight: 800, mr: 1 }}>
+                      <Box component="span" sx={{ fontWeight: 800, mr: 1 }}>
                         {commentUser?.name || "User"}
-                        </Box>
-                        {comment.text}
+                      </Box>
+                      {comment.text}
                     </Typography>
-                    </Box>
+                  </Box>
                 );
-            })
+              })
             )}
           </Box>
 
@@ -269,18 +271,12 @@ const PostDetailsModal = ({
                 }}
               />
 
-              <Button
-                variant="contained"
+              <OrbitButton
+                variant="primary"
                 onClick={handleSendComment}
-                sx={{
-                  borderRadius: 3,
-                  px: 3,
-                  background: "#2563eb",
-                  fontWeight: 800,
-                }}
               >
                 Send
-              </Button>
+              </OrbitButton>
             </Box>
           </Box>
         </Box>

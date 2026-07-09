@@ -3,7 +3,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
   MenuItem,
   Stack,
@@ -13,6 +12,7 @@ import {
   upsertMonthlyBudget,
   updateBudget,
 } from "../services/financeService";
+import OrbitButton from "./ui/OrbitButton";
 
 const getWeekRange = () => {
   const today = new Date();
@@ -123,11 +123,13 @@ const MonthlyBudgetModal = ({
   };
 
   const menuProps = {
-    PaperProps: {
-      sx: {
-        background: "#0f172a",
-        color: "#f8fafc",
-        border: "1px solid #1f2937",
+    slotProps: {
+      paper: {
+        sx: {
+          background: "#0f172a",
+          color: "#f8fafc",
+          border: "1px solid #1f2937",
+        },
       },
     },
   };
@@ -313,13 +315,16 @@ const MonthlyBudgetModal = ({
           p: 3,
         }}
       >
-        <Button onClick={onClose} sx={{ color: "#94a3b8", fontWeight: 800 }}>
+        <OrbitButton
+          variant="danger"
+          onClick={onClose}
+        >
           Cancel
-        </Button>
+        </OrbitButton>
 
-        <Button variant="contained" onClick={handleSubmit}>
+        <OrbitButton variant="primary" onClick={handleSubmit}>
           {isEditing ? "Update Budget" : "Save Budget"}
-        </Button>
+        </OrbitButton>
       </DialogActions>
     </Dialog>
   );

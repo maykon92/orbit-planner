@@ -4,10 +4,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
   MenuItem,
 } from "@mui/material";
+import OrbitButton from "./ui/OrbitButton";
 
 const EditPostModal = ({ open, onClose, post, onSave }) => {
   const [form, setForm] = useState({
@@ -57,10 +57,12 @@ const EditPostModal = ({ open, onClose, post, onSave }) => {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={handleSubmit}>
+        <OrbitButton onClick={onClose} variant="danger">
+          Cancel
+        </OrbitButton>
+        <OrbitButton variant="primary" onClick={handleSubmit}>
           Save Changes
-        </Button>
+        </OrbitButton>
       </DialogActions>
     </Dialog>
   );

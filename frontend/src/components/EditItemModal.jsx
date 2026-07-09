@@ -3,11 +3,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
   MenuItem,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import OrbitButton from "./ui/OrbitButton";
 
 const EditItemModal = ({ open, onClose, item, onSave }) => {
   const [form, setForm] = useState({
@@ -80,8 +80,8 @@ const EditItemModal = ({ open, onClose, item, onSave }) => {
   };
 
   const selectProps = {
-    MenuProps: {
-      paperprops: {
+    slotProps: {
+      paper: {
         sx: {
           background: "#0f172a",
           color: "#f8fafc",
@@ -315,22 +315,16 @@ const EditItemModal = ({ open, onClose, item, onSave }) => {
           borderTop: "1px solid #1f2937",
         }}
       >
-        <Button onClick={onClose} sx={{ color: "#94a3b8" }}>
+        <OrbitButton onClick={onClose} variant="danger">
           Cancel
-        </Button>
+        </OrbitButton>
 
-        <Button
-          variant="contained"
+        <OrbitButton
+          variant="primary"
           onClick={handleSubmit}
-          sx={{
-            borderRadius: 3,
-            px: 3,
-            background: "#2563eb",
-            fontWeight: 800,
-          }}
         >
           Save Changes
-        </Button>
+        </OrbitButton>
       </DialogActions>
     </Dialog>
   );

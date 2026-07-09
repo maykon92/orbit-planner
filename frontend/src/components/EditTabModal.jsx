@@ -4,11 +4,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
   Switch,
   FormControlLabel,
 } from "@mui/material";
+
+import OrbitButton from "./ui/OrbitButton";
 
 const EditTabModal = ({ open, onClose, tab, onSave }) => {
   const [form, setForm] = useState({
@@ -79,10 +80,12 @@ const EditTabModal = ({ open, onClose, tab, onSave }) => {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={handleSubmit}>
+        <OrbitButton onClick={onClose} variant="danger">
+          Cancel
+        </OrbitButton>
+        <OrbitButton variant="primary" onClick={handleSubmit}>
           Save Changes
-        </Button>
+        </OrbitButton>
       </DialogActions>
     </Dialog>
   );
