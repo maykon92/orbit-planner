@@ -1,3 +1,7 @@
+import { useEffect, useState } from "react";
+import dayjs from "dayjs";
+import "dayjs/locale/en-gb";
+
 import {
   Dialog,
   DialogTitle,
@@ -10,11 +14,11 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
-import dayjs from "dayjs";
+
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 
 import api from "../services/api";
 import { getImageUrl } from "../utils/getImageUrl";
@@ -24,6 +28,7 @@ import {
   orbitFormSelectSx,
   orbitMenuProps,
   orbitDatePickerProps,
+  orbitTimePickerProps,
   orbitDialogPaperSx,
   orbitDialogTitleSx,
   orbitDialogContentSx,
@@ -228,53 +233,84 @@ const CreateItemModal = ({
           onChange={(e) => setForm({ ...form, description: e.target.value })}
         />
 
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider
+          dateAdapter={AdapterDayjs}
+          adapterLocale="en-gb"
+        >
           <DatePicker
             label="Start Date"
+            format="DD/MM/YYYY"
             value={form.startDate ? dayjs(form.startDate) : null}
             onChange={(value) =>
-              setForm({
-                ...form,
-                startDate: value ? value.format("YYYY-MM-DD") : "",
-              })
+              setForm((previousForm) => ({
+                ...previousForm,
+                startDate:
+                  value && value.isValid()
+                    ? value.format("YYYY-MM-DD")
+                    : "",
+              }))
             }
             slotProps={orbitDatePickerProps}
           />
 
           <DatePicker
             label="End Date"
+            format="DD/MM/YYYY"
             value={form.endDate ? dayjs(form.endDate) : null}
             onChange={(value) =>
-              setForm({
-                ...form,
-                endDate: value ? value.format("YYYY-MM-DD") : "",
-              })
+              setForm((previousForm) => ({
+                ...previousForm,
+                endDate:
+                  value && value.isValid()
+                    ? value.format("YYYY-MM-DD")
+                    : "",
+              }))
             }
             slotProps={orbitDatePickerProps}
           />
+
+          <TimePicker
+            label="Start Time"
+            ampm={false}
+            format="HH:mm"
+            value={
+              form.startTime
+                ? dayjs(`2000-01-01T${form.startTime}`)
+                : null
+            }
+            onChange={(value) =>
+              setForm((previousForm) => ({
+                ...previousForm,
+                startTime:
+                  value && value.isValid()
+                    ? value.format("HH:mm")
+                    : "",
+              }))
+            }
+            slotProps={orbitTimePickerProps}
+          />
+
+          <TimePicker
+            label="End Time"
+            ampm={false}
+            format="HH:mm"
+            value={
+              form.endTime
+                ? dayjs(`2000-01-01T${form.endTime}`)
+                : null
+            }
+            onChange={(value) =>
+              setForm((previousForm) => ({
+                ...previousForm,
+                endTime:
+                  value && value.isValid()
+                    ? value.format("HH:mm")
+                    : "",
+              }))
+            }
+            slotProps={orbitTimePickerProps}
+          />
         </LocalizationProvider>
-
-        <TextField
-          fullWidth
-          label="Start Time"
-          type="time"
-          margin="normal"
-          slotProps={{ inputLabel: { shrink: true } }}
-          value={form.startTime}
-          onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-          sx={orbitTextFieldSx}
-        />
-
-        <TextField
-          fullWidth
-          label="End Time"
-          type="time"
-          margin="normal"
-          slotProps={{ inputLabel: { shrink: true } }}
-          value={form.endTime}
-          onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-          sx={orbitTextFieldSx}
-        />
 
         {selectedType === "travel" && (
           <>

@@ -52,6 +52,8 @@ import ManageWorkspaceModal from "../../components/finance/ManageWorkspaceModal"
 import ConfirmDialog from "../../components/ConfirmDialog";
 import MonthlyBudgetModal from "../../components/MonthlyBudgetModal";
 import AddIncomeModal from "../../components/AddIncomeModal";
+import CreateFinanceWorkspaceModal from "../../components/CreateFinanceWorkspaceModal";
+import OrbitButton from "../../components/ui/OrbitButton";
 
 const cardSx = {
   borderRadius: 5,
@@ -363,6 +365,8 @@ const Finance = () => {
   const [viewMode, setViewMode] = useState("week");
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [budgetToDelete, setBudgetToDelete] = useState(null);
+  const [openCreateWorkspaceModal, setOpenCreateWorkspaceModal] = useState(false);
+  const [creatingWorkspace, setCreatingWorkspace] = useState(false);
 
   const [searchParams] = useSearchParams();
 
@@ -435,18 +439,35 @@ const Finance = () => {
     loadFinanceData();
   }, [loadFinanceData]);
 
-  const handleCreateWorkspace = async () => {
-    const name = window.prompt("Workspace name");
+  const handleCreateWorkspace = async (workspaceData) => {
+    if (creatingWorkspace) return;
 
-    if (!name?.trim()) return;
+    try {
+      setCreatingWorkspace(true);
 
-    const newWorkspace = await createFinanceWorkspace({
-      name,
-      type: "shared",
-    });
+      const response = await createFinanceWorkspace(workspaceData);
+      const newWorkspace = response.workspace || response;
 
-    setWorkspaces((prev) => [...prev, newWorkspace]);
-    setSelectedWorkspaceId(newWorkspace._id);
+      setWorkspaces((previousWorkspaces) => [
+        ...previousWorkspaces,
+        newWorkspace,
+      ]);
+
+      setSelectedWorkspaceId(newWorkspace._id);
+      setOpenCreateWorkspaceModal(false);
+
+      showToast?.("Shared workspace created successfully.");
+    } catch (error) {
+      console.error("Error creating shared workspace:", error);
+
+      showToast?.(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Error creating shared workspace."
+      );
+    } finally {
+      setCreatingWorkspace(false);
+    }
   };
 
   const selectedWorkspace = workspaces.find(
@@ -1207,38 +1228,22 @@ const Finance = () => {
                 <MenuItem value="month">This Month</MenuItem>
               </TextField>
 
-              <Button
-                variant="outlined"
+              <OrbitButton
+                variant="secondary"
                 startIcon={<GroupsIcon />}
                 onClick={() => setOpenManageWorkspace(true)}
                 disabled={!selectedWorkspace}
-                sx={{
-                  height: 40,
-                  borderRadius: 3,
-                  color: "#fff",
-                  borderColor: "rgba(96,165,250,.7)",
-                  fontWeight: 800,
-                  textTransform: "none",
-                }}
               >
                 Manage
-              </Button>
+              </OrbitButton>
 
-              <Button
-                variant="outlined"
+              <OrbitButton
+                variant="secondary"
                 startIcon={<GroupsIcon />}
-                onClick={handleCreateWorkspace}
-                sx={{
-                  height: 40,
-                  borderRadius: 3,
-                  color: "#fff",
-                  borderColor: "rgba(96,165,250,.7)",
-                  fontWeight: 800,
-                  textTransform: "none",
-                }}
+                onClick={() => setOpenCreateWorkspaceModal(true)}
               >
                 New Shared
-              </Button>
+              </OrbitButton>
             </Stack>
           </CardContent>
         </Card>
@@ -1983,6 +1988,13 @@ const Finance = () => {
         workspaceId={selectedWorkspaceId}
         budget={selectedBudget}
         onSaved={loadFinanceData}
+      />
+
+      <CreateFinanceWorkspaceModal
+        open={openCreateWorkspaceModal}
+        onClose={() => setOpenCreateWorkspaceModal(false)}
+        onSubmit={handleCreateWorkspace}
+        saving={creatingWorkspace}
       />
 
       <AddIncomeModal

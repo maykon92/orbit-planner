@@ -7,14 +7,42 @@ import {
   MenuItem,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { createExpense, updateExpense } from "../services/financeService";
+import dayjs from "dayjs";
+
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+
+import {
+  createExpense,
+  updateExpense,
+} from "../services/financeService";
+
 import OrbitButton from "./ui/OrbitButton";
 
-const getToday = () => new Date().toISOString().split("T")[0];
+import {
+  orbitTextFieldSx,
+  orbitFormSelectSx,
+  orbitMenuProps,
+  orbitDatePickerProps,
+  orbitDialogPaperSx,
+  orbitDialogTitleSx,
+  orbitDialogContentSx,
+  orbitDialogActionsSx,
+} from "../theme";
+
+const getToday = () => dayjs().format("YYYY-MM-DD");
 
 const formatDateForInput = (date) => {
   if (!date) return getToday();
-  return new Date(date).toISOString().split("T")[0];
+
+  const parsedDate = dayjs(date);
+
+  if (!parsedDate.isValid()) {
+    return getToday();
+  }
+
+  return parsedDate.format("YYYY-MM-DD");
 };
 
 const getInitialForm = () => ({
@@ -26,15 +54,31 @@ const getInitialForm = () => ({
   notes: "",
 });
 
-const ExpenseModal = ({ open, onClose, onSaved, expense = null, workspaceId }) => {
-  const isEditing = !!expense;
+const ExpenseModal = ({
+  open,
+  onClose,
+  onSaved,
+  expense = null,
+  workspaceId,
+}) => {
+  const isEditing = Boolean(expense);
+
   const [form, setForm] = useState(getInitialForm());
+  const [saving, setSaving] = useState(false);
+
+  const selectSlotProps = {
+    select: {
+      MenuProps: orbitMenuProps,
+    },
+  };
 
   useEffect(() => {
+    if (!open) return;
+
     if (expense) {
       setForm({
         title: expense.title || "",
-        amount: expense.amount || "",
+        amount: expense.amount ?? "",
         category: expense.category || "other",
         date: formatDateForInput(expense.date),
         paymentMethod: expense.paymentMethod || "card",
@@ -45,128 +89,137 @@ const ExpenseModal = ({ open, onClose, onSaved, expense = null, workspaceId }) =
     }
   }, [expense, open]);
 
+  const handleClose = () => {
+    if (saving) return;
+
+    setForm(getInitialForm());
+    onClose();
+  };
+
   const handleSubmit = async () => {
-    if (isEditing) {
-      await updateExpense(expense._id, {
-        workspaceId,
-        ...form,
-        amount: Number(form.amount),
-      });
-    } else {
-      await createExpense({
-        workspaceId,
-        ...form,
-        amount: Number(form.amount),
-      });
+    if (saving) return;
+
+    if (!workspaceId) {
+      alert("Workspace is required.");
+      return;
     }
 
-    await onSaved?.();
-    onClose();
-    setForm(getInitialForm());
-  };
+    if (!form.title.trim()) {
+      alert("Expense title is required.");
+      return;
+    }
 
-  const fieldSx = {
-    mb: 2,
-    input: { color: "#f8fafc" },
-    textarea: { color: "#f8fafc" },
-    "& .MuiInputLabel-root": { color: "#94a3b8" },
-    "& .MuiInputLabel-root.Mui-focused": { color: "#60a5fa" },
-    "& .MuiOutlinedInput-root": {
-      background: "#111827",
-      borderRadius: 3,
-      color: "#f8fafc",
-      "& fieldset": { borderColor: "#1f2937" },
-      "&:hover fieldset": { borderColor: "#334155" },
-      "&.Mui-focused fieldset": { borderColor: "#2563eb" },
-    },
-    "& .MuiSelect-icon": { color: "#94a3b8" },
-  };
+    const amount = Number(form.amount);
 
-  const menuProps = {
-    slotProps: {
-      paper: {
-        sx: {
-          background: "#0f172a",
-          color: "#f8fafc",
-          border: "1px solid #1f2937",
-        },
-      },
-    },
+    if (!Number.isFinite(amount) || amount <= 0) {
+      alert("Enter a valid expense amount.");
+      return;
+    }
+
+    if (!form.date) {
+      alert("Expense date is required.");
+      return;
+    }
+
+    const payload = {
+      workspaceId,
+      title: form.title.trim(),
+      amount,
+      category: form.category,
+      date: form.date,
+      paymentMethod: form.paymentMethod,
+      notes: form.notes.trim(),
+    };
+
+    try {
+      setSaving(true);
+
+      if (isEditing) {
+        await updateExpense(expense._id, payload);
+      } else {
+        await createExpense(payload);
+      }
+
+      await onSaved?.();
+
+      setForm(getInitialForm());
+      onClose();
+    } catch (error) {
+      console.error("Error saving expense:", error);
+
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Error saving expense."
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       fullWidth
       maxWidth="sm"
       slotProps={{
         paper: {
-          sx: {
-            backgroundColor: "#0f172a",
-            color: "#f8fafc",
-            borderRadius: 4,
-            border: "1px solid #1f2937",
-            boxShadow: "0 30px 80px rgba(0,0,0,0.65)",
-            overflow: "hidden",
-          },
-        }
+          sx: orbitDialogPaperSx,
+        },
       }}
     >
-      <DialogTitle
-        sx={{
-          backgroundColor: "#0f172a",
-          color: "#f8fafc",
-          borderBottom: "1px solid #1f2937",
-          fontWeight: 800,
-          fontSize: "1.25rem",
-          px: 3,
-          py: 2,
-        }}
-      >
+      <DialogTitle sx={orbitDialogTitleSx}>
         {isEditing ? "Edit Expense" : "Add Expense"}
       </DialogTitle>
 
-      <DialogContent
-        sx={{
-          backgroundColor: "#0f172a",
-          color: "#f8fafc",
-          px: 3,
-          py: "24px !important",
-        }}
-      >
+      <DialogContent sx={orbitDialogContentSx}>
         <TextField
           fullWidth
           label="Title"
-          margin="normal"
           value={form.title}
-          sx={fieldSx}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
+          sx={orbitTextFieldSx}
+          onChange={(event) =>
+            setForm((previousForm) => ({
+              ...previousForm,
+              title: event.target.value,
+            }))
+          }
         />
 
         <TextField
           fullWidth
           label="Amount"
           type="number"
-          margin="normal"
           value={form.amount}
-          sx={fieldSx}
-          onChange={(e) => setForm({ ...form, amount: e.target.value })}
+          sx={orbitTextFieldSx}
+          slotProps={{
+            htmlInput: {
+              min: 0,
+              step: "0.01",
+            },
+          }}
+          onChange={(event) =>
+            setForm((previousForm) => ({
+              ...previousForm,
+              amount: event.target.value,
+            }))
+          }
         />
 
         <TextField
           fullWidth
           select
           label="Category"
-          margin="normal"
           value={form.category}
-          slotProps={{
-            select: {
-              MenuProps: menuProps,
-            },
-          }}
-          sx={fieldSx}
-          onChange={(e) => setForm({ ...form, category: e.target.value })}
+          sx={orbitFormSelectSx}
+          slotProps={selectSlotProps}
+          onChange={(event) =>
+            setForm((previousForm) => ({
+              ...previousForm,
+              category: event.target.value,
+            }))
+          }
         >
           <MenuItem value="food">Food</MenuItem>
           <MenuItem value="rent">Rent</MenuItem>
@@ -181,30 +234,37 @@ const ExpenseModal = ({ open, onClose, onSaved, expense = null, workspaceId }) =
           <MenuItem value="other">Other</MenuItem>
         </TextField>
 
-        <TextField
-          fullWidth
-          label="Date"
-          type="date"
-          margin="normal"
-          value={form.date}
-          slotProps={{ inputLabel: { shrink: true } }}
-          sx={fieldSx}
-          onChange={(e) => setForm({ ...form, date: e.target.value })}
-        />
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            label="Date"
+            format="DD/MM/YYYY"
+            value={form.date ? dayjs(form.date) : null}
+            onChange={(value) =>
+              setForm((previousForm) => ({
+                ...previousForm,
+                date:
+                  value && value.isValid()
+                    ? value.format("YYYY-MM-DD")
+                    : "",
+              }))
+            }
+            slotProps={orbitDatePickerProps}
+          />
+        </LocalizationProvider>
 
         <TextField
           fullWidth
           select
           label="Payment Method"
-          margin="normal"
           value={form.paymentMethod}
-          slotProps={{
-            select: {
-              MenuProps: menuProps,
-            },
-          }}
-          sx={fieldSx}
-          onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
+          sx={orbitFormSelectSx}
+          slotProps={selectSlotProps}
+          onChange={(event) =>
+            setForm((previousForm) => ({
+              ...previousForm,
+              paymentMethod: event.target.value,
+            }))
+          }
         >
           <MenuItem value="card">Card</MenuItem>
           <MenuItem value="cash">Cash</MenuItem>
@@ -215,34 +275,40 @@ const ExpenseModal = ({ open, onClose, onSaved, expense = null, workspaceId }) =
         <TextField
           fullWidth
           label="Notes"
-          margin="normal"
           multiline
           rows={3}
           value={form.notes}
-          sx={fieldSx}
-          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          sx={orbitTextFieldSx}
+          onChange={(event) =>
+            setForm((previousForm) => ({
+              ...previousForm,
+              notes: event.target.value,
+            }))
+          }
         />
       </DialogContent>
 
-      <DialogActions
-        sx={{
-          backgroundColor: "#0f172a",
-          borderTop: "1px solid #1f2937",
-          p: 3,
-        }}
-      >
-        <OrbitButton 
-          onClick={onClose} 
-          variant="danger"
+      <DialogActions sx={orbitDialogActionsSx}>
+        <OrbitButton
+          variant="secondary"
+          onClick={handleClose}
+          disabled={saving}
         >
           Cancel
         </OrbitButton>
 
-        <OrbitButton 
-          variant="primary"  
+        <OrbitButton
+          variant="primary"
           onClick={handleSubmit}
+          disabled={saving}
         >
-          {isEditing ? "Update" : "Save"}
+          {saving
+            ? isEditing
+              ? "Updating..."
+              : "Saving..."
+            : isEditing
+              ? "Update"
+              : "Save"}
         </OrbitButton>
       </DialogActions>
     </Dialog>

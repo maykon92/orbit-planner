@@ -277,7 +277,24 @@ const Feed = () => {
           <Stack direction="row" spacing={2} sx={{alignItems:"center"}}>
             <Avatar
               src={user?.avatar ? getImageUrl(user.avatar) : ""}
-              sx={{ width: 50, height: 50 }}
+              sx={{ 
+                width: 52,
+                height: 52,
+                border: "2px solid rgba(255,255,255,.9)",
+                boxShadow: `
+                    0 0 0 2px rgba(96,165,250,.15),
+                    0 10px 30px rgba(59,130,246,.18)
+                `,
+                transition: ".25s",
+
+                "&:hover": {
+                    transform: "scale(1.08)",
+                    boxShadow: `
+                        0 0 0 3px rgba(96,165,250,.25),
+                        0 16px 40px rgba(59,130,246,.28)
+                    `,
+                }, 
+              }}
             >
               {user?.name?.charAt(0) || "U"}
             </Avatar>
@@ -362,7 +379,24 @@ const Feed = () => {
                             ? getImageUrl(post.userId.avatar)
                             : ""
                         }
-                        sx={{ width: 46, height: 46 }}
+                        sx={{ 
+                          width: 50,
+                          height: 50,
+                          border: "2px solid rgba(255,255,255,.9)",
+                          boxShadow: `
+                              0 0 0 2px rgba(96,165,250,.15),
+                              0 10px 30px rgba(59,130,246,.18)
+                          `,
+                          transition: ".25s",
+
+                          "&:hover": {
+                              transform: "scale(1.08)",
+                              boxShadow: `
+                                  0 0 0 3px rgba(96,165,250,.25),
+                                  0 16px 40px rgba(59,130,246,.28)
+                              `,
+                          },
+                         }}
                       >
                         {post.userId?.name?.charAt(0) || "U"}
                       </Avatar>
@@ -535,10 +569,24 @@ const Feed = () => {
                                     : ""
                                 }
                                 sx={{
-                                  width: 36,
-                                  height: 36,
+                                  top: 15,
+                                  width: 38,
+                                  height: 38,
                                   fontSize: 14,
-                                  background: "#4f46e5",
+                                  border: "2px solid rgba(255,255,255,.9)",
+                                  boxShadow: `
+                                      0 0 0 2px rgba(96,165,250,.15),
+                                      0 10px 30px rgba(59,130,246,.18)
+                                  `,
+                                  transition: ".25s",
+
+                                  "&:hover": {
+                                      transform: "scale(1.08)",
+                                      boxShadow: `
+                                          0 0 0 3px rgba(96,165,250,.25),
+                                          0 16px 40px rgba(59,130,246,.28)
+                                      `,
+                                  },
                                 }}
                               >
                                 {comment.userId?.name?.charAt(0) || "U"}
@@ -626,7 +674,24 @@ const Feed = () => {
                       onClick={() => navigate(`/users/${user?._id}`)}
                     >
                       <Avatar
-                        sx={{ width: 36, height: 36 }}
+                        sx={{ 
+                          width: 38,
+                          height: 38,
+                          border: "2px solid rgba(255,255,255,.9)",
+                          boxShadow: `
+                              0 0 0 2px rgba(96,165,250,.15),
+                              0 10px 30px rgba(59,130,246,.18)
+                          `,
+                          transition: ".25s",
+
+                          "&:hover": {
+                              transform: "scale(1.08)",
+                              boxShadow: `
+                                  0 0 0 3px rgba(96,165,250,.25),
+                                  0 16px 40px rgba(59,130,246,.28)
+                              `,
+                          }, 
+                        }}
                         src={user?.avatar ? getImageUrl(user.avatar) : ""}
                       >
                         {user?.name?.charAt(0) || "U"}
