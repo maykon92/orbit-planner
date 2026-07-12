@@ -2,44 +2,57 @@ import Message from "../models/Message.js";
 import Conversation from "../models/Conversation.js";
 import { createNotification } from "./notificationService.js";
 
-export const createMessage = async ({ conversationId, senderId, text }) => {
+export const createMessage = async ({
+  conversationId,
+  senderId,
+  text,
+  storyId = null,
+  storyPreview = null,
+}) => {
   const message = await Message.create({
     conversationId,
     senderId,
     text,
     readBy: [senderId],
+    storyId,
+    storyPreview,
   });
-
-  const conversation = await Conversation.findById(conversationId);
-
-  const recipientId = conversation?.participants?.find(
-    (participantId) => participantId.toString() !== senderId.toString()
-  );
 
   await Conversation.findByIdAndUpdate(conversationId, {
     lastMessage: message._id,
     lastMessageAt: message.createdAt,
-    ...(recipientId && {
-      $addToSet: {
-        unreadBy: recipientId,
-      },
-    }),
   });
 
-  if (recipientId) {
-    await createNotification({
-      recipientId,
-      senderId,
-      type: "message",
-      message: "sent you a message",
-      conversationId,
-    });
+  const conversation = await Conversation.findById(conversationId);
+
+  if (conversation?.participants?.length) {
+    const recipientId = conversation.participants.find(
+      (participantId) =>
+        participantId.toString() !== senderId.toString()
+    );
+
+    if (recipientId) {
+      await Conversation.findByIdAndUpdate(conversationId, {
+        $addToSet: {
+          unreadBy: recipientId,
+        },
+      });
+
+      await createNotification({
+        recipientId,
+        senderId,
+        type: "message",
+        message: storyId
+          ? "replied to your story"
+          : "sent you a message",
+        conversationId,
+      });
+    }
   }
 
-  return await Message.findById(message._id).populate(
-    "senderId",
-    "name avatar email"
-  );
+  return await Message.findById(message._id)
+    .populate("senderId", "name avatar email")
+    .populate("storyId", "image caption userId");
 };
 
 export const getConversationMessages = async (conversationId) => {

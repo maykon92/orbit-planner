@@ -24,6 +24,8 @@ const notificationSchema = new mongoose.Schema(
         "message",
         "finance_invitation",
         "finance_invitation_accepted",
+        "story_like",
+        "story_reply",
       ],
       required: true,
     },
@@ -55,6 +57,11 @@ const notificationSchema = new mongoose.Schema(
     financeInvitation: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "FinanceInvitation",
+    },
+
+    story: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Story",
     },
   },
   { timestamps: true }

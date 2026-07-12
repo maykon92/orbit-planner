@@ -43,6 +43,7 @@ import SidebarCard from "../../components/SidebarCard";
 import NotificationList from "../../components/NotificationList";
 import UpcomingEvents from "../../components/UpcomingEvents";
 import PageHeader from "../../components/layout/PageHeader";
+import StoriesBar from "../../components/StoriesBar";
 
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
@@ -261,6 +262,8 @@ const Feed = () => {
             </>
           }
         />
+        
+        <StoriesBar />
 
         <Paper
           elevation={0}

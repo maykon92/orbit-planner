@@ -22,6 +22,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import financeRoutes from "./routes/financeRoutes.js";
 import financeInvitationRoutes from "./routes/financeInvitationRoutes.js";
 import financeWorkspaceRoutes from "./routes/financeWorkspaceRoutes.js";
+import storyRoutes from "./routes/storyRoutes.js";
 
 import { authGuard } from "./middlewares/authMiddleware.js";
 import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
@@ -181,6 +182,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/finance", financeRoutes);
 app.use("/api/finance/invitations", financeInvitationRoutes);
 app.use("/api/finance/workspaces", financeWorkspaceRoutes);
+app.use("/api/stories", storyRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

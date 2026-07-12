@@ -33,6 +33,30 @@ const messageSchema = new mongoose.Schema(
       default: false,
     },
 
+    storyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Story",
+      default: null,
+    },
+
+    storyPreview: {
+      image: {
+        type: String,
+        default: "",
+      },
+
+      caption: {
+        type: String,
+        default: "",
+      },
+
+      ownerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      },
+    },
+
     readBy: [
       {
         type: mongoose.Schema.Types.ObjectId,

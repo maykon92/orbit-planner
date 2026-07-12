@@ -1,10 +1,13 @@
 import Notification from "../models/Notification.js";
 
 export const getUserNotifications = async (userId) => {
-  return await Notification.find({ recipient: userId })
+  return await Notification.find({
+    recipient: userId,
+  })
     .populate("sender", "name avatar email")
     .populate("post", "caption photos")
     .populate("conversation")
+    .populate("story", "image caption userId")
     .populate({
       path: "financeInvitation",
       populate: [
@@ -21,18 +24,26 @@ export const getUserNotifications = async (userId) => {
     .sort({ createdAt: -1 });
 };
 
-export const markNotificationAsRead = async ({ notificationId, userId }) => {
+export const markNotificationAsRead = async ({
+  notificationId,
+  userId,
+}) => {
   return await Notification.findOneAndUpdate(
     {
       _id: notificationId,
       recipient: userId,
     },
-    { isRead: true },
-    { new: true }
-  ) 
+    {
+      isRead: true,
+    },
+    {
+      new: true,
+    }
+  )
     .populate("sender", "name avatar email")
     .populate("post", "caption photos")
-    .populate("conversation");
+    .populate("conversation")
+    .populate("story", "image caption userId");
 };
 
 export const markAllNotificationsAsRead = async (userId) => {
@@ -55,8 +66,13 @@ export const createNotification = async ({
   postId = null,
   commentId = null,
   conversationId = null,
+  storyId = null,
 }) => {
-  if (recipientId.toString() === senderId.toString()) {
+  if (
+    recipientId &&
+    senderId &&
+    recipientId.toString() === senderId.toString()
+  ) {
     return null;
   }
 
@@ -68,10 +84,12 @@ export const createNotification = async ({
     post: postId,
     comment: commentId,
     conversation: conversationId,
+    story: storyId,
   });
 
   return await Notification.findById(notification._id)
     .populate("sender", "name avatar email")
     .populate("post", "caption photos")
-    .populate("conversation");
+    .populate("conversation")
+    .populate("story", "image caption userId");
 };
